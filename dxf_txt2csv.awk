@@ -1,4 +1,9 @@
 #!/usr/bin/gawk -f
+# 
+# create csv file from texts in DXF file
+# Zoltan Siki siki.zoltan@epito.bme.hu
+# usage: dxfinfo.awk your_file.dxf > csv_file
+
 BEGIN {
     print "EAST;NORTH;LAYER;DIRECTION;SIZE;TEXT";   # print header
     rad2deg = 180.0 / atan2(1.0, 1.0) / 4;
