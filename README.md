@@ -1,2 +1,2 @@
 # dxf_utils
-Small utility script to handle dxf files
+Small utility scripts to handle dxf files
