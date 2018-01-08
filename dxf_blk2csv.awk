@@ -1,7 +1,11 @@
 #!/usr/bin/gawk -f
+# 
+# create csv file from block inserts in dxf file
+# Zoltan Siki siki.zoltan@epito.bme.hu
+# usage:
+#        gawk -f dxf_blk2csv.awk dxf_file > csv_file
 BEGIN {
     print "EAST;NORTH;LAYER;DIRECTION;SIZEX;SIZEY;NAME";    # print header
-    rad2deg = 180.0 / atan2(1.0, 1.0) / 4;
 }
 /^ENTITIES/,/^EOF/ {
     if ($0 == "  0") {                  # next entity reached
