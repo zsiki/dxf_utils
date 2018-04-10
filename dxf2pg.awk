@@ -23,6 +23,7 @@ BEGIN { PI = atan2(0, -1);
 	last = ""; init();
 }
 /ENTITIES/,/EOF/ {
+	sub(/[ \t\r\n]+$/, "", $0);					# remove trailing white space
 	if ($0 == "  0" && subentity != "VERTEX") {
 		# save previous entity
 		if (entity == "MTEXT" || entity == "TEXT") {

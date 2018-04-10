@@ -8,6 +8,7 @@ BEGIN {
     print "EAST;NORTH;LAYER;DIRECTION;SIZEX;SIZEY;NAME";    # print header
 }
 /^ENTITIES/,/^EOF/ {
+	sub(/[ \t\r\n]+$/, "", $0);			# remove trailing white space
     if ($0 == "  0") {                  # next entity reached
         if (entity == "INSERT") {       #
             printf("%.2f;%.2f;%s;%.5f;%.2f;%.2f;%s\n", x, y, layer, angle, sizex, sizey, name);

@@ -9,6 +9,7 @@ BEGIN {
     rad2deg = 180.0 / atan2(1.0, 1.0) / 4;
 }
 /^ENTITIES/,/^EOF/ {
+	sub(/[ \t\r\n]+$/, "", $0)			# remove trailing white space
     if ($0 == "  0") {                  # next entity reached
         if (entity == "MTEXT") {        # calculate angle from dx, dy
             angle = atan2(dy, dx) * rad2deg;    # angle in deg

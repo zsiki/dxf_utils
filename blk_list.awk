@@ -8,8 +8,10 @@
 #		or
 #		 blk_list.awk your_dxf_file.dxf | sort > stats.txt
 
-/ENTITIES/,/EOF/ { if (last == "  0") {
-		if (insert) { blk[name]++ }
+/ENTITIES/,/EOF/ {
+	sub(/[ \t\r\n]+$/, "", $0);				# remove trailing white space
+	if (last == "  0") {					# next entity reached
+		if (insert) { blk[name]++ }			# increment block count
 		insert = ($0 == "INSERT" ? 1 : 0)
 		name = "???";
 	}

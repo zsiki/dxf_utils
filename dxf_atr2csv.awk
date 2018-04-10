@@ -10,6 +10,7 @@ BEGIN {
     entity = ""; txt = ""; angle = 0; size = 1; layer = ""; flag = 0;
 }
 /^ENTITIES/,/^EOF/ {
+	sub(/[ \t\r\n]+$/, "", $0);			# remove trailing white space
     if ($0 == "  0") {                  # next entity reached
         if (entity == "ATTRIB") {   # output text data
             printf("%.2f;%.2f;%s;%.5f;%.2f;%d;%s\n", x, y, layer, angle, size, flag, txt);
