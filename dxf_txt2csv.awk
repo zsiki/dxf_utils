@@ -3,17 +3,28 @@
 # create csv file from texts in DXF file
 # Zoltan Siki siki.zoltan@epito.bme.hu
 # usage: dxfinfo.awk your_file.dxf > csv_file
+function ltrim(s) { sub(/^[ \t\r\n]+/, "", s); return s }
+function rtrim(s) { sub(/[ \t\r\n]+$/, "", s); return s }
+function trim(s) { return rtrim(ltrim(s)); }
+
 
 BEGIN {
     print "EAST;NORTH;LAYER;DIRECTION;SIZE;TEXT";   # print header
     rad2deg = 180.0 / atan2(1.0, 1.0) / 4;
 }
 /^ENTITIES/,/^EOF/ {
-	sub(/[ \t\r\n]+$/, "", $0)			# remove trailing white space
+	sub(/[ \t\r\n]+$/, "", $0);			# remove trailing white space
     if ($0 == "  0") {                  # next entity reached
         if (entity == "MTEXT") {        # calculate angle from dx, dy
             angle = atan2(dy, dx) * rad2deg;    # angle in deg
         }
+		if (entity == "MTEXT") {		# remove special chars
+			txt = trim(txt);
+print txt;
+			print match("/\\/", txt);
+			gsub("/\\H.*;/", "", txt);					# remove spec
+print txt;
+		}
         if (entity == "TEXT" || entity == "MTEXT") {    # output text data
             printf("%.2f;%.2f;%s;%.5f;%.2f;%s\n", x, y, layer, angle, size, txt);
         }
