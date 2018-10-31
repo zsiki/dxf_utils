@@ -9,3 +9,13 @@ Small utility scripts to handle dxf files
 * dxf_blk2csv.awk - create csv file from block inserts in dxf file
 * dxf_txt2csv.awk - create csv file from texts in DXF file
 * dxfinfo.awk - statistics about entities and layers in a DXF file
+
+How to use these scripts?
+
+You have to install gawk on your machine. There are binary releases for Linux and Windows.
+
+Open a command line window and type the following command to list the statistics of the *sample.dxf*:
+
+```
+gawk -f dxfinfo.awk sample.dxf
+```
