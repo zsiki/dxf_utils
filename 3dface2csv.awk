@@ -1,4 +1,4 @@
-#!/bin/gawk -f
+#!/usr/bin/gawk -f
 # 
 # Convert 3DFACE DXF entities to a csv file with WKT geometry
 # useful to load into QGIS as Delemited text layer

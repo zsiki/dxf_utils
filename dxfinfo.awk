@@ -1,4 +1,4 @@
-#!/bin/gawk -f
+#!/usr/bin/gawk -f
 # 
 # statistics about entities and layers in a DXF file
 # Zoltan Siki siki.zoltan@epito.bme.hu

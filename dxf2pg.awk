@@ -1,4 +1,4 @@
-#!/bin/gawk -f
+#!/usr/bin/gawk -f
 # 
 # DXF entites to PostGIS database
 # Supported entites: TEXT, MTEXT, LINE, POLYLINE
