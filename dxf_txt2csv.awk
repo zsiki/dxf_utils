@@ -13,18 +13,15 @@ BEGIN {
     rad2deg = 180.0 / atan2(1.0, 1.0) / 4;
 }
 /^ENTITIES/,/^EOF/ {
-	sub(/[ \t\r\n]+$/, "", $0);			# remove trailing white space
+    sub(/[ \t\r\n]+$/, "", $0);            # remove trailing white space
     if ($0 == "  0") {                  # next entity reached
         if (entity == "MTEXT") {        # calculate angle from dx, dy
             angle = atan2(dy, dx) * rad2deg;    # angle in deg
+            # remove special chars
+            txt = trim(txt);
+            gsub(/{*\\[a-zA-Z].*;/, "", txt);
+            gsub(/}$/, "", txt);
         }
-		if (entity == "MTEXT") {		# remove special chars
-			txt = trim(txt);
-print txt;
-			print match("/\\/", txt);
-			gsub("/\\H.*;/", "", txt);					# remove spec
-print txt;
-		}
         if (entity == "TEXT" || entity == "MTEXT") {    # output text data
             printf("%.2f;%.2f;%s;%.5f;%.2f;%s\n", x, y, layer, angle, size, txt);
         }
