@@ -17,9 +17,11 @@ BEGIN {
     if ($0 == "  0") {                  # next entity reached
         if (entity == "MTEXT") {        # calculate angle from dx, dy
             angle = atan2(dy, dx) * rad2deg;    # angle in deg
+            # replace \\P (new line)
+            gsub(/\\P/, "|", txt);
             # remove special chars
             txt = trim(txt);
-            gsub(/{*\\[a-zA-Z].*;/, "", txt);
+            gsub(/{*\\[a-zA-Z][^;]*;/, "", txt);
             gsub(/}$/, "", txt);
         }
         if (entity == "TEXT" || entity == "MTEXT") {    # output text data
