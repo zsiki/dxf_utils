@@ -21,7 +21,7 @@ gawk -f dxfinfo.awk sample.dxf
 ```
 
 The results are written to the standard output, if you would like to save them 
-info a file use redirection standard output to file e.g.:
+into a file use redirection standard output to file e.g.:
 
 ```
 gawk -f dxfinfo.awk sample.dxf > sample_info.txt
