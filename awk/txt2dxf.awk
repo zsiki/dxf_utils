@@ -5,11 +5,13 @@
 # input coordinate format:
 #   point_id easting northing elevation code/layer
 # elevations and codes are optional
+# default separators are white spaces (space/TAB) use -F from command line to
+# customize field separator
 # (C) Zoltan Siki siki.zoltan@emk.bme.hu
 # usage:
 #        gawk -f txt2dxf.awk coodinate_list > dxf_file
 
-BEGIN { FS="[ ]";
+BEGIN {
     # some constants in dxf units
     dx = 0.1;       # easting offset of point id text
     dy = -0.25;     # northin offset of point id text
