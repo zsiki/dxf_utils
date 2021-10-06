@@ -1,7 +1,7 @@
 # dxf_utils
 Small utility scripts to handle dxf files
 
-* 3dface2csv.awk - convert 3DFACE DXF entities to a csv file with WKT geometry useful to load into QGIS as Delemited text layer
+* 3dface2csv.awk - convert 3DFACE DXF entities to a csv file with WKT geometry useful to load into QGIS as Delimited text layer
 * blk_list.awk - statistics about block inserts in a DXF file
 * coo2dxf.awk - create dxf file from space separated coordinate list
 * dxf2pg.awk - DXF entites to PostGIS database, supported entites: TEXT, MTEXT, LINE, POLYLINE
@@ -21,7 +21,7 @@ gawk -f dxfinfo.awk sample.dxf
 ```
 
 The results are written to the standard output, if you would like to save them 
-into a file use redirection standard output to file e.g.:
+into a file use redirection of standard output to file e.g.:
 
 ```
 gawk -f dxfinfo.awk sample.dxf > sample_info.txt
@@ -31,5 +31,5 @@ or use pipe to send the output to another program.
 
 ## For Windows users
 
-If you use Windows you have to install GNU AWK. You can find binary release here: http://gnuwin32.sourceforge.net/packages/gawk.htm. Download the binary zip and unzip it (gawk.exe is enough).
+If you use Windows you have to install GNU AWK. You can find binary release here: http://gnuwin32.sourceforge.net/packages/gawk.htm. Download the zip file and unzip it (gawk.exe is enough).
 
