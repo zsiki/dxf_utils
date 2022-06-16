@@ -22,10 +22,11 @@ def print_row(lay, lay_row):
     print()
 
 def layer_entity(dxf):
-    """ collect entities by layer into a dictionary
+    """ collect entities by layer into a dictionary, the dictionary
+        has tuple indices composed of layer and entity type
 
         :param dxf: ezdxf document
-        :returns: entity types and dictionary of layer & entity count
+        :returns: entity count by type and layer as a dictionary
     """
     msp = dxf.modelspace()
     entities = {}
