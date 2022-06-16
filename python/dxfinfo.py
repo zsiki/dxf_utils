@@ -21,6 +21,27 @@ def print_row(lay, lay_row):
         print(f'{lay_row[i]:{NUMBER_FIELD}d}', end=' ')
     print()
 
+def layer_entity(dxf):
+    """ collect entities by layer into a dictionary
+
+        :param dxf: ezdxf document
+        :returns: entity types and dictionary of layer & entity count
+    """
+    msp = dxf.modelspace()
+    entities = {}
+    for entity in msp:
+        e_typ = entity.dxftype()
+        try:
+            layer = entity.dxf.layer
+        except:     # TODO no layer for mpolygon from ezdxf
+            print(f'missing layer for entity {e_typ} skipped')
+            continue
+        if (entity.dxf.layer, e_typ) not in entities:
+            entities[(layer, e_typ)] = 0
+        entities[(entity.dxf.layer, e_typ)] += 1
+    # collect different entity types
+    return entities
+
 def dxf_info(file_name):
     """ collect and print layer/entity info of a DXF file
 
@@ -38,14 +59,7 @@ def dxf_info(file_name):
     print(file_name)
     print('EXTMIN: ', doc.header['$EXTMIN'])
     print('EXTMAX: ', doc.header['$EXTMAX'])
-    msp = doc.modelspace()
-    entities = {}
-    for entity in msp:
-        e_typ = entity.dxftype()
-        if (entity.dxf.layer, e_typ) not in entities:
-            entities[(entity.dxf.layer, e_typ)] = 0
-        entities[(entity.dxf.layer, e_typ)] += 1
-    # collect different entity types
+    entities = layer_entity(doc)
     keys = sorted(entities.keys())
     entities_found = sorted(list({key[1] for key in keys}))
     num_ent_types = len(entities_found)
