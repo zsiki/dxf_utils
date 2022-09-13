@@ -19,18 +19,19 @@ class Block2():
         :param verbose: verbose output
     """
 
-    def __init__(self, args):
+    def __init__(self, dxf_name, block_name, out_path, out_type,
+                 width, height, verbose, scale, lwidth, color):
         """ initialize """
-        self.dxf_name = args.name[0]
-        self.block_name = args.block
-        self.out_path = args.out_path
-        self.out_type = args.type
-        self.width = args.width
-        self.height = args.height
-        self.verbose = args.verbose
-        self.scale = args.scale
-        self.line_width = args.lwidth
-        self.color = args.color
+        self.dxf_name = dxf_name
+        self.block_name = block_name
+        self.out_path = out_path
+        self.out_type = out_type
+        self.width = width
+        self.height = height
+        self.verbose = verbose
+        self.scale = scale
+        self.line_width = lwidth
+        self.color = color
 
     def convert(self):
         """ convert blocks """
@@ -181,5 +182,7 @@ if __name__ == "__main__":
     if not args.type in ('png', 'svg'):
         raise argparse.ArgumentTypeError("Output type must be 'svg' or 'png'")
 
-    b = Block2(args)
+    b = Block2(args.name[0], args.block, args.out_path, args.type, 
+               args.width, args.height, args.verbose, args.scale, 
+               args.lwidth, args.color)
     b.convert()
