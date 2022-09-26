@@ -3,99 +3,169 @@
     Generate report from a DXF file
 """
 import sys
-import glob
+import argparse
 import numpy as np
 import ezdxf
 
 LAYER_FIELD = 16        # length of layer name in output
 NUMBER_FIELD = 6        # length of entity counts in output
 
-def print_row(lay, lay_row):
-    """ print a row of table
+class DxfInfo():
+    """ class to collect DXF information
 
-        :param lay: layer name
-        :param lay_row: numpy vector of entity counts
+        :param dxf_file: the dxf file to process
+        :param template_file: dxf file to compare layers and blocks
+        :param output_file: output txt file
     """
-    print(f'{lay[:LAYER_FIELD]:{LAYER_FIELD}s}', end=' ')
-    for i in range(lay_row.shape[0]):
-        print(f'{lay_row[i]:{NUMBER_FIELD}d}', end=' ')
-    print()
-
-def layer_entity(dxf):
-    """ collect entities by layer into a dictionary, the dictionary
-        has tuple indices composed of layer and entity type
-
-        :param dxf: ezdxf document
-        :returns: entity count by type and layer as a dictionary
-    """
-    msp = dxf.modelspace()
-    entities = {}
-    for entity in msp:
-        e_typ = entity.dxftype()
+    def __init__(self, dxf_file, template_file, output_file):
+        """ initialize object """
+        self.dxf_file = dxf_file
+        self.template_file = template_file
+        # load dxf
         try:
-            layer = entity.dxf.layer
-        except:     # TODO no layer for mpolygon from ezdxf
-            print(f'missing layer for entity {e_typ} skipped')
-            continue
-        if (entity.dxf.layer, e_typ) not in entities:
-            entities[(layer, e_typ)] = 0
-        entities[(entity.dxf.layer, e_typ)] += 1
-    # collect different entity types
-    return entities
+            self.doc = ezdxf.readfile(dxf_file)
+        except IOError:
+            print(f"*** ERROR Not a DXF file or a generic I/O error: {dxf_file}")
+            sys.exit()
+        except ezdxf.DXFStructureError:
+            print(f"*** ERROR Invalid or corrupted DXF file: {dxf_file}")
+            sys.exit()
+        # load template dxf if any
+        self.templ = None
+        if template_file:
+            try:
+                self.templ = ezdxf.readfile(template_file)
+            except IOError:
+                print(f"*** ERROR Not a DXF file or a generic I/O error: {template_file}")
+                sys.exit()
+            except ezdxf.DXFStructureError:
+                print(f"*** ERROR Invalid or corrupted DXF file: {template_file}")
+                sys.exit()
+        if output_file == 'stdout':
+            self.out = sys.stdout
+        else:
+            try:
+                self.out = open(output_file, 'w')
+            except:
+                print(f"*** ERROR creating output file: {output_file}")
+                sys.exit()
+        self.entities = None
+        self.layers = None
+        self.blocks = None
 
-def dxf_info(file_name):
-    """ collect and print layer/entity info of a DXF file
+    def print_row(self, lay, lay_row):
+        """ print a row of table
 
-        :param dxf_name: name of input file
-    """
-    try:
-        doc = ezdxf.readfile(file_name)
-    except IOError:
-        print(f"*** ERROR Not a DXF file or a generic I/O error: {file_name}")
-        return
-    except ezdxf.DXFStructureError:
-        print(f"*** ERROR Invalid or corrupted DXF file: {file_name}")
-        return
-    print(80 * '-')
-    print(file_name)
-    print('EXTMIN: ', doc.header['$EXTMIN'])
-    print('EXTMAX: ', doc.header['$EXTMAX'])
-    entities = layer_entity(doc)
-    keys = sorted(entities.keys())
-    entities_found = sorted(list({key[1] for key in keys}))
-    num_ent_types = len(entities_found)
-    entity_dict = {e[1]:e[0] for e in enumerate(entities_found)}
-    # print header of table
-    print(f'\n{"Layer":{LAYER_FIELD}s}', end=' ')
-    layer_row = np.zeros(num_ent_types, dtype=np.int32)
-    total_row = np.zeros(num_ent_types, dtype=np.int32)
-    for e in entities_found:
-        print(f'{e[:NUMBER_FIELD]:>{NUMBER_FIELD}s}', end=' ')
-    print()
-    last_layer = ""
-    for key in keys:
-        layer = key[0]
-        if layer != last_layer and np.sum(layer_row) > 0:
-            print_row(last_layer, layer_row)
+            :param lay: layer name
+            :param lay_row: numpy vector of entity counts
+        """
+        print(f'{lay[:LAYER_FIELD]:{LAYER_FIELD}s}', end=' ', file=self.out)
+        for i in range(lay_row.shape[0]):
+            print(f'{lay_row[i]:{NUMBER_FIELD}d}', end=' ', file=self.out)
+        print(file=self.out)
+
+    def layer_compare(self):
+        """ compare layers in doc and template """
+        doc_layers = [layer.dxf.name for layer in self.doc.layers]
+        templ_layers = [layer.dxf.name for layer in self.templ.layers]
+        missing = [name for name in templ_layers if name not in doc_layers]
+        extra = [name for name in doc_layers if name not in templ_layers]
+        print(80 * '-', file=self.out)
+        print(f"Template: {self.template_file}", file=self.out)
+        if len(missing) > 0:
+            print("Missing layers:", file=self.out)
+            for layer in missing:
+                print(layer, file=self.out)
+        if len(extra) > 0:
+            print("Extra layers:", file=self.out)
+            for layer in extra:
+                print(layer, file=self.out)
+
+    def block_compare(self):
+        """ compare blocks in doc and template """
+        doc_blocks = [block.name for block in self.doc.blocks]
+        templ_blocks = [block.name for block in self.templ.blocks]
+        missing = [name for name in templ_blocks if name not in doc_blocks]
+        extra = [name for name in doc_blocks if name not in templ_blocks]
+        print(80 * '-', file=self.out)
+        print(f"Template: {self.template_file}", file=self.out)
+        if len(missing) > 0:
+            print("Missing blocks:", file=self.out)
+            for block in missing:
+                print(block, file=self.out)
+        if len(extra) > 0:
+            print("Extra blocks:", file=self.out)
+            for block in extra:
+                print(block, file=self.out)
+
+    def layer_entity(self):
+        """ collect entities by layer into a dictionary, the dictionary
+            has tuple indices composed of layer and entity type
+        """
+        msp = self.doc.modelspace()
+        entities = {}
+        for entity in msp:
+            e_typ = entity.dxftype()
+            try:
+                layer = entity.dxf.layer
+            except:     # TODO no layer for mpolygon from ezdxf
+                print(f'missing layer for entity {e_typ} skipped')
+                continue
+            if (entity.dxf.layer, e_typ) not in entities:
+                entities[(layer, e_typ)] = 0
+            entities[(entity.dxf.layer, e_typ)] += 1
+        # collect different entity types
+        self.entities = entities
+
+    def dxf_info(self):
+        """ collect and print layer/entity info of a DXF file
+        """
+        print(80 * '-', file=self.out)
+        print(self.dxf_file, file=self.out)
+        e_min = self.doc.header['$EXTMIN']
+        e_max = self.doc.header['$EXTMAX']
+        print(f"EXTMIN: {e_min[0]:.3f} {e_min[1]:.3f} {e_min[2]:.3f}", file=self.out)
+        print(f"EXTMAX: {e_max[0]:.3f} {e_max[1]:.3f} {e_max[2]:.3f}", file=self.out)
+        if self.entities is None:
+            self.layer_entity()
+        keys = sorted(self.entities.keys())
+        entities_found = sorted(list({key[1] for key in keys}))
+        num_ent_types = len(entities_found)
+        entity_dict = {e[1]:e[0] for e in enumerate(entities_found)}
+        # print header of table
+        print(f'\n{"Layer":{LAYER_FIELD}s}', end=' ', file=self.out)
+        layer_row = np.zeros(num_ent_types, dtype=np.int32)
+        total_row = np.zeros(num_ent_types, dtype=np.int32)
+        for e in entities_found:
+            print(f'{e[:NUMBER_FIELD]:>{NUMBER_FIELD}s}', end=' ', file=self.out)
+        print(file=self.out)
+        last_layer = ""
+        for key in keys:
+            layer = key[0]
+            if layer != last_layer and np.sum(layer_row) > 0:
+                self.print_row(last_layer, layer_row)
+                total_row += layer_row
+                layer_row.fill(0)           # intialize row
+            layer_row[entity_dict[key[1]]] = self.entities[key]
+            last_layer = layer
+        if np.sum(layer_row) > 0:
+            self.print_row(last_layer, layer_row)
             total_row += layer_row
-            layer_row.fill(0)           # intialize row
-        layer_row[entity_dict[key[1]]] = entities[key]
-        last_layer = layer
-    if np.sum(layer_row) > 0:
-        print_row(last_layer, layer_row)
-        total_row += layer_row
-    print()
-    print_row("TOTAL", total_row)
+        print(file=self.out)
+        self.print_row("TOTAL", total_row)
 
 if __name__ == '__main__':
-
-    if len(sys.argv) < 2:
-        print('Usage: dxfinfo.py dxf_file [dxf_file [...]]')
-        sys.exit()
-    for arg in sys.argv[1:]:
-        glob_names = glob.glob(arg)     # extend */? for windows
-        if len(glob_names) == 0:
-            print(f'*** ERROR File not found: {arg}')
-            continue
-        for name in glob.glob(arg):     # glob extension for windows
-            dxf_info(name)
+    # process command line parameters
+    parser = argparse.ArgumentParser()
+    parser.add_argument('name', metavar='file_name', type=str, nargs=1,
+                        help='DXF file to process')
+    parser.add_argument('-t', '--template', type=str, default=None,
+                        help='Template DXF to compare layers, blocks (optional)')
+    parser.add_argument('-o', '--out_file', type=str, default='stdout',
+                        help='output file name, default: stdout')
+    args = parser.parse_args()
+    DI = DxfInfo(args.name[0], args.template, args.out_file)
+    DI.dxf_info()
+    if args.template:
+        DI.layer_compare()
+        DI.block_compare()
