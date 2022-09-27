@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
 
 """
-    visual check tool for gcp_find.py
+    Graphical user interface for blk2svg.py
     (c) Zoltan Siki siki (dot) zoltan (at) emk.bme.hu
 """
 
@@ -23,13 +22,6 @@ class Blk2SvgGui(tk.Tk):
         self.dxf_file = ""
         self.out_dir = "."
         self.title("Blokk -> SVG/PNG konverter")
-        # add menu
-        #self.menu = tk.Menu(master=self)
-        #self.fileMenu = tk.Menu(self.menu, tearoff=0)
-        #self.fileMenu.add_command(label="Open", command=self.select)
-        #self.fileMenu.add_command(label="Exit", command=exit)
-        #self.menu.add_cascade(label="File", menu=self.fileMenu)
-        #self.config(menu=self.menu)
 
         self.dxf_label = tk.Label(self, text="DXF input fájl: ")
         self.dxf_entry = tk.Entry(self, width=60)
@@ -37,11 +29,13 @@ class Blk2SvgGui(tk.Tk):
         self.dxf_label.grid(row=0, column=0, sticky="e")
         self.dxf_entry.grid(row=0, column=1, sticky="w")
         self.dxf_select.grid(row=0, column=2, sticky="w")
+
         self.blk_label = tk.Label(self, text="Blokk név minta: ")
         self.blk_entry = tk.Entry(self, width=30)
         self.blk_entry.insert(0, "*")
         self.blk_label.grid(row=1, column=0, sticky="e")
         self.blk_entry.grid(row=1, column=1, sticky="w")
+
         self.out_label = tk.Label(self, text="Cél könyvtár: ")
         self.out_entry = tk.Entry(self, width=60)
         self.out_entry.insert(0, ".")
