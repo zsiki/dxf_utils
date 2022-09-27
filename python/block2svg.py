@@ -9,7 +9,7 @@ import ezdxf
 import drawSvg as draw
 
 class Block2():
-    """ clas to convert DXF blocks to other symbol formats
+    """ class to convert DXF blocks to other symbol formats
 
         :param scale: scale for CAD coordinates
         :param width: width of SVG
@@ -73,6 +73,13 @@ class Block2():
                 r = entity.dxf.radius * self.scale
                 d.append(draw.Circle(xc, yc, r, fill='none',
                                      stroke_width=self.line_width, stroke=self.color))
+            #elif typ == "ELLIPSE":
+            #    xc = (entity.dxf.center[0] - x0) * self.scale
+            #    yc = (entity.dxf.center[1] - y0) * self.scale
+            #    rx = (entity.dxf.major_axis)
+            #    ry = (entity.dxf.minor_axis)
+            #    d.append(draw.Ellipse(xc, yc, rx, ry,
+            #                          stroke_width=self.line_width, stroke=self.color))
             elif typ == "ARC":
                 xc = (entity.dxf.center[0] - x0) * self.scale
                 yc = (entity.dxf.center[1] - y0) * self.scale
