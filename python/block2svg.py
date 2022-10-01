@@ -11,12 +11,16 @@ import drawSvg as draw
 class Block2():
     """ class to convert DXF blocks to other symbol formats
 
-        :param scale: scale for CAD coordinates
+        :param dxf_name: input DXF to process
+        :param block_name: glob pattern for block names to convert (* = all)
+        :param out_path: path to folder to write SVGs/PNGs
+        :param out_type: svg or png
         :param width: width of SVG
         :param height: height of SVG
-        :param line_width: line width in SVG
-        :param color: line and fill color in SVG
         :param verbose: verbose output
+        :param scale: scale for CAD coordinates
+        :param lwidth: line width in SVG
+        :param color: line and fill color in SVG
     """
 
     def __init__(self, dxf_name, block_name, out_path, out_type,
@@ -136,22 +140,22 @@ class Block2():
                     for pp in points:
                         p.append((pp[0] - x0) * self.scale)
                         p.append((pp[1] - y0) * self.scale)
+                closed = False
                 if entity.closed:
-                    p.append(p[0])
-                    p.append(p[1])
+                    closed = True
                 d.append(draw.Lines(*p, stroke=self.color, stroke_width=self.line_width,
-                                    fill="none"))
+                                    fill="none", close=closed))
             elif typ == "POLYLINE":
                 if entity.get_mode() in ['AcDb2dPolyline', 'AcDb3dPolyline']:
                     p = []
                     for v in entity.vertices:
                         p.append((v.dxf.location[0] - x0) * self.scale)
                         p.append((v.dxf.location[1] - y0) * self.scale)
+                    closed = False
                     if entity.is_closed:
-                        p.append(p[0])
-                        p.append(p[1])
+                        closed = True
                     d.append(draw.Lines(*p, stroke=self.color,
-                             stroke_width=self.line_width, fill="none"))
+                             stroke_width=self.line_width, fill="none", close=closed))
                 else:
                     print(f'Unsupported POLYLINE mode: {entity.get_mode()}, block: {block.name}')
             else:
@@ -189,7 +193,7 @@ if __name__ == "__main__":
     if not args.type in ('png', 'svg'):
         raise argparse.ArgumentTypeError("Output type must be 'svg' or 'png'")
 
-    b = Block2(args.name[0], args.block, args.out_path, args.type, 
-               args.width, args.height, args.verbose, args.scale, 
+    b = Block2(args.name[0], args.block, args.out_path, args.type,
+               args.width, args.height, args.verbose, args.scale,
                args.lwidth, args.color)
     b.convert()
