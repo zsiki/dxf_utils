@@ -47,8 +47,10 @@ class Cp2Templ():
         except ezdxf.DXFStructureError:
             print(f"*** ERROR Invalid or corrupted DXF file: {template_file}")
             sys.exit()
+        self.layer_table = None
         if layer_table:
             self.layer_table = self.load_table(layer_table)
+        self.block_table = None
         if block_table:
             self.block_table = self.load_table(block_table)
 
