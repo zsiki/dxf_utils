@@ -10,6 +10,27 @@ import ezdxf
 LAYER_FIELD = 16        # length of layer name in output
 NUMBER_FIELD = 6        # length of entity counts in output
 
+dxf2cad_version = {'AC1002': 'AutoCAD R2',
+                   'AC1004': 'AutoCAD R9',
+                   'AC1006': 'AutoCAD R10',
+                   'AC1009': 'AutoCAD R11/R12',
+                   'AC1012': 'AutoCAD R13',
+                   'AC1014': 'AutoCAD R14',
+                   'AC1015': 'AutoCAD R2000/R2002',
+                   'AC1018': 'AutoCAD R2004/R2005/R2006',
+                   'AC1021': 'AutoCAD R2007/R2008/R2009',
+                   'AC1024': 'AutoCAD R2010/R2011/R2012',
+                   'AC1027': 'AutoCAD R2013/R2014/R2015/R2016/R2017',
+                   'AC1032': 'AutoCAD R2018/R2019/R2020/R2021/R2022/R2023'}
+
+def cad_version(dxf_version):
+    """ return AuoCAD version from DXF version
+        :param dxf_version: DXF version from dxf file
+    """
+    if dxf_version in dxf2cad_version:
+        return dxf2cad_version[dxf_version]
+    return ''
+
 class DxfInfo():
     """ class to collect DXF information
 
@@ -121,7 +142,7 @@ class DxfInfo():
         """ collect and print layer/entity info of a DXF file
         """
         print(80 * '-', file=self.out)
-        print(self.dxf_file, file=self.out)
+        print(f"{self.dxf_file} version: {self.doc.dxfversion} {cad_version(self.doc.dxfversion)}", file=self.out)
         e_min = self.doc.header['$EXTMIN']
         e_max = self.doc.header['$EXTMAX']
         print(f"EXTMIN: {e_min[0]:.3f} {e_min[1]:.3f} {e_min[2]:.3f}", file=self.out)
