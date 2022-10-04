@@ -176,10 +176,10 @@ if __name__ == "__main__":
                         help='SVG or image width, default=500')
     parser.add_argument('-e', '--height', type=float, default=500.0,
                         help='SVG or image height, default=500')
-    parser.add_argument('-s', '--scale', type=float, default=80.0,
-                        help='scale, default=80')
-    parser.add_argument('-l', '--lwidth', type=int, default=10,
-                        help='line width, default=10')
+    parser.add_argument('-s', '--scale', type=float, default=40.0,
+                        help='scale, default=40')
+    parser.add_argument('-l', '--lwidth', type=int, default=5,
+                        help='line width, default=5')
     parser.add_argument('-c', '--color', type=str, default="black",
                         help='color, default=black')
     parser.add_argument('-v', '--verbose', action="store_true",
