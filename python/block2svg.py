@@ -2,11 +2,13 @@
 
 """ convert DXF block entities into SVG XML or PNG files """
 
+import sys
 import os
 import fnmatch
 import argparse
 import ezdxf
 import drawSvg as draw
+from math import hypot, sin, cos, atan, atan2, pi
 
 class Block2():
     """ class to convert DXF blocks to other symbol formats
@@ -39,7 +41,14 @@ class Block2():
 
     def convert(self):
         """ convert blocks """
-        doc = ezdxf.readfile(self.dxf_name)
+        try:
+            doc = ezdxf.readfile(self.dxf_name)
+        except IOError:
+            print(f"*** ERROR Not a DXF file or a generic I/O error: {self.dxf_name}")
+            sys.exit()
+        except ezdxf.DXFStructureError:
+            print(f"*** ERROR Invalid or corrupted DXF file: {self.dxf_name}")
+            sys.exit()
         for block in doc.blocks:
             if not block.name.startswith("*"): # skip special blocks
                 if fnmatch.fnmatch(block.name, self.block_name):
@@ -52,6 +61,30 @@ class Block2():
                     elif self.out_type == 'svg':
                         res.saveSvg(os.path.join(self.out_path,
                                     block.name + '.' + self.out_type))
+
+    @staticmethod
+    def bulge_arc(start, end, bulge):
+        """ calculate arc parameters between two points with bulge
+
+            :param start: start point of arc (x, y)
+            :param end: end point of arc (x, y)
+            :param bulge: CAD arc parameter 
+            :return: centerX, centerY, radius, start_angle, end_angle
+        """
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
+        chord = hypot(dx, dy)
+        sign = 1 if bulge > 0 else -1
+        delta = 4 * atan(abs(bulge))
+        #r = chord * (bulge * bulge + 1) / 4 / bulge
+        r = abs(chord / 2 / sin(delta / 2))
+        #a1 = atan2(dy, dx) + pi / 2 - 2 * atan(bulge)    # angle to center from start point
+        a = atan2(dy, dx) + (pi - delta) * sign * 0.5
+        cx = start[0] + r * cos(a)
+        cy = start[1] + r * sin(a)
+        start_a = atan2(start[1] - cy, start[0] - cx)
+        end_a = atan2(end[1] - cy, end[0] - cx)
+        return cx, cy, r, start_a, end_a
 
     def block2svg(self, block):
         """ export block to SVG
@@ -102,20 +135,31 @@ class Block2():
                 if entity.dxf.solid_fill == 1:
                     p = draw.Path(stroke_width=self.line_width, stroke=self.color,
                                   fill=self.color)
-                    first = True
+                    first = None
+                    bulge = 0
                     if isinstance(entity.paths.paths[0],
                                   ezdxf.entities.boundary_paths.PolylinePath):
                         for v in entity.paths.paths[0].vertices:
-                            if first:
-                                p.M((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
-                                first = False
+                            if first is None:
+                                first = ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
+                                act = first
+                                p.M(*first)
                             else:
-                                p.L((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
+                                act = ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
+                                if abs(bulge) > 0.1:  # arc
+                                    _, _, r, _, _ = self.bulge_arc(last, act, bulge)
+                                    sweep_flag = 0 if bulge > 0 else 1
+                                    p.A(r, r, 0, 0, sweep_flag, *act)
+                                else:
+                                    p.L(*act)
+                            if len(v) > 2:
+                                bulge = v[2]
+                                last = act
                     elif isinstance(entity.paths.paths[0],
                                     ezdxf.entities.boundary_paths.EdgePath):
                         for edge in entity.paths.paths[0].edges:
                             if isinstance(edge, ezdxf.entities.boundary_paths.LineEdge):
-                                if first:
+                                if first is None:
                                     p.M((edge.start_point[0] - x0) * self.scale,
                                         (edge.start_point[1] - y0) * self.scale)
                                     first = False
@@ -127,7 +171,6 @@ class Block2():
                                       (edge.center[1] - y0) * self.scale,
                                       edge.radius * self.scale,
                                       edge.start_angle, edge.end_angle)
-                                first = False
                     else:
                         print('Unsupported HATCH boundary type')
                         continue
@@ -135,18 +178,45 @@ class Block2():
                 else:
                     print('HATCH with solid fill are only supported')
             elif typ == "LWPOLYLINE":
-                p = []
+                p = draw.Path(stroke_width=self.line_width, stroke=self.color,
+                              fill='none')
                 with entity.points() as points:
-                    for pp in points:
-                        p.append((pp[0] - x0) * self.scale)
-                        p.append((pp[1] - y0) * self.scale)
-                closed = False
+                    pp = points[0]
+                    first = ((pp[0] - x0) * self.scale, (pp[1] - y0) * self.scale)
+                    p.M(*first)
+                    act = first
+                    bulge = pp[4]
+                    for pp in points[1:]:
+                        act = ((pp[0] - x0) * self.scale, (pp[1] - y0) * self.scale)
+                        if abs(bulge) > 0.1:
+                            _, _, r, _, _ = self.bulge_arc(last, act, bulge)
+                            sweep_flag = 0 if bulge > 0 else 1
+                            p.A(r, r, 0, 0, sweep_flag, *act)
+                        else:
+                            p.L(*act)
+                        bulge = pp[4]
+                        last = act
                 if entity.closed:
-                    closed = True
-                d.append(draw.Lines(*p, stroke=self.color, stroke_width=self.line_width,
-                                    fill="none", close=closed))
+                    if abs(bulge) > 0.1:
+                        _, _, r, _, _ = self.bulge_arc(last, act, bulge)
+                        sweep_flag = 0 if bulge > 0 else 1
+                        p.A(r, r, 0, 0, sweep_flag, *act)
+                        #else:
+                            #p.L(*first)
+                    p.Z()
+                d.append(p)
+                #p = []
+                #with entity.points() as points:
+                #    for pp in points:
+                #        p.append((pp[0] - x0) * self.scale)
+                #        p.append((pp[1] - y0) * self.scale)
+                #closed = False
+                #if entity.closed:
+                #    closed = True
+                #d.append(draw.Lines(*p, stroke=self.color, stroke_width=self.line_width,
+                #                    fill="none", close=closed))
             elif typ == "POLYLINE":
-                if entity.get_mode() in ['AcDb2dPolyline', 'AcDb3dPolyline']:
+                if entity.get_mode() in ('AcDb2dPolyline', 'AcDb3dPolyline'):
                     p = []
                     for v in entity.vertices:
                         p.append((v.dxf.location[0] - x0) * self.scale)
