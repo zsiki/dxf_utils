@@ -135,26 +135,29 @@ class Block2():
                 if entity.dxf.solid_fill == 1:
                     p = draw.Path(stroke_width=self.line_width, stroke=self.color,
                                   fill=self.color)
-                    first = None
-                    bulge = 0
                     if isinstance(entity.paths.paths[0],
                                   ezdxf.entities.boundary_paths.PolylinePath):
-                        for v in entity.paths.paths[0].vertices:
-                            if first is None:
-                                first = ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
-                                act = first
-                                p.M(*first)
+                        v = entity.paths.paths[0].vertices[0]
+                        first = ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
+                        last = first
+                        p.M(*first)
+                        bulge = v[2]
+                        for v in entity.paths.paths[0].vertices[1:]:
+                            act = ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
+                            if abs(bulge) > 0.1:  # arc
+                                _, _, r, _, _ = self.bulge_arc(last, act, bulge)
+                                sweep_flag = 0 if bulge > 0 else 1
+                                p.A(r, r, 0, 0, sweep_flag, *act)
                             else:
-                                act = ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
-                                if abs(bulge) > 0.1:  # arc
-                                    _, _, r, _, _ = self.bulge_arc(last, act, bulge)
-                                    sweep_flag = 0 if bulge > 0 else 1
-                                    p.A(r, r, 0, 0, sweep_flag, *act)
-                                else:
-                                    p.L(*act)
-                            if len(v) > 2:
-                                bulge = v[2]
-                                last = act
+                                p.L(*act)
+                            bulge = v[2]
+                            last = act
+                        # close 
+                        if abs(bulge) > 0.1:
+                            _, _, r, _, _ = self.bulge_arc(last, first, bulge)
+                            sweep_flag = 0 if bulge > 0 else 1
+                            p.A(r, r, 0, 0, sweep_flag, *first)
+                        p.Z()
                     elif isinstance(entity.paths.paths[0],
                                     ezdxf.entities.boundary_paths.EdgePath):
                         for edge in entity.paths.paths[0].edges:
