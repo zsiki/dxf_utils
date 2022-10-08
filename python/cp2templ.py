@@ -9,8 +9,12 @@ import argparse
 import ezdxf
 from ezdxf.addons import Importer
 
-BYLAYER_COLOR = 256   # BYLAYER color
-BYLAYER_LTYPE = "BYLAYER" # BYLAYER linetype
+# TODO set linewidth to BYLAYER 
+# 3D vertices are changed to 2D verices in the 3D polyline (AutoCAD 2023 doesn't like it)
+
+BYLAYER_COLOR = 256         # BYLAYER color
+BYLAYER_LTYPE = "BYLAYER"   # BYLAYER linetype
+BYLAYER_LWEIGHT = -1        # BYLAYER lineweight
 # supported entiies
 ENTITIES = ['POINT', 'INSERT', 'TEXT', 'MTEXT', 'LINE', 'LWPOLYLINE',
             'MLINE', 'MPOLYGON', 'ARC', 'CIRCLE', 'DIMENSION',
@@ -110,6 +114,8 @@ class Cp2Templ():
                 entity.dxf.color = BYLAYER_COLOR
             if entity.is_supported_dxf_attrib('linetype'):
                 entity.dxf.linetype = BYLAYER_LTYPE
+            if entity.is_supported_dxf_attrib('lineweight'):
+                entity.dxf.lineweight = BYLAYER_LWEIGHT
             importer.import_entity(entity, templ_doc)
         importer.finalize()
         try:
