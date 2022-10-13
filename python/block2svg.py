@@ -6,9 +6,9 @@ import sys
 import os
 import fnmatch
 import argparse
+from math import hypot, sin, cos, atan, atan2, pi
 import ezdxf
 import drawSvg as draw
-from math import hypot, sin, cos, atan, atan2, pi
 
 class Block2():
     """ class to convert DXF blocks to other symbol formats
@@ -68,7 +68,7 @@ class Block2():
 
             :param start: start point of arc (x, y)
             :param end: end point of arc (x, y)
-            :param bulge: CAD arc parameter 
+            :param bulge: CAD arc parameter
             :return: centerX, centerY, radius, start_angle, end_angle
         """
         dx = end[0] - start[0]
@@ -152,7 +152,7 @@ class Block2():
                                 p.L(*act)
                             bulge = v[2]
                             last = act
-                        # close 
+                        # close
                         if abs(bulge) > 0.1:
                             _, _, r, _, _ = self.bulge_arc(last, first, bulge)
                             sweep_flag = 0 if bulge > 0 else 1
@@ -160,6 +160,7 @@ class Block2():
                         p.Z()
                     elif isinstance(entity.paths.paths[0],
                                     ezdxf.entities.boundary_paths.EdgePath):
+                        first = None
                         for edge in entity.paths.paths[0].edges:
                             if isinstance(edge, ezdxf.entities.boundary_paths.LineEdge):
                                 if first is None:
@@ -175,11 +176,11 @@ class Block2():
                                       edge.radius * self.scale,
                                       edge.start_angle, edge.end_angle)
                     else:
-                        print('Unsupported HATCH boundary type')
+                        print(f'Unsupported HATCH boundary type: {block.name}')
                         continue
                     d.append(p)
                 else:
-                    print('HATCH with solid fill are only supported')
+                    print(f'HATCH with solid fill are only supportedi: {block.name}')
             elif typ == "LWPOLYLINE":
                 p = draw.Path(stroke_width=self.line_width, stroke=self.color,
                               fill='none')
@@ -230,9 +231,9 @@ class Block2():
                     d.append(draw.Lines(*p, stroke=self.color,
                              stroke_width=self.line_width, fill="none", close=closed))
                 else:
-                    print(f'Unsupported POLYLINE mode: {entity.get_mode()}, block: {block.name}')
+                    print(f'Unsupported POLYLINE mode: {entity.get_mode()}, {block.name}')
             else:
-                print(f'Unsupported entity type: {typ}, block: {block.name}')
+                print(f'Unsupported entity type: {typ}, {block.name}')
         return d
 
 if __name__ == "__main__":
