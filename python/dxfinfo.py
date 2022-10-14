@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 import ezdxf
 
-LAYER_FIELD = 16        # length of layer name in output
+LAYER_FIELD = 32        # length of layer name in output
 NUMBER_FIELD = 6        # length of entity counts in output
 
 dxf2cad_version = {'AC1002': 'AutoCAD R2',
