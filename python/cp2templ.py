@@ -116,6 +116,12 @@ class Cp2Templ():
                 entity.dxf.linetype = BYLAYER_LTYPE
             if entity.is_supported_dxf_attrib('lineweight'):
                 entity.dxf.lineweight = BYLAYER_LWEIGHT
+            if e_typ == "POLYLINE":
+                # hack for 3D Polyline with 2D vetices
+                if entity.is_3d_polyline:
+                    for v in entity.vertices:
+                        if v.is_2d_polyline_vertex:
+                            v.dxf.flags |= v.POLYLINE_3D_VERTEX
             importer.import_entity(entity, templ_doc)
         importer.finalize()
         try:
