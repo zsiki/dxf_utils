@@ -5,11 +5,12 @@
     (c) Zoltan Siki siki (dot) zoltan (at) emk.bme.hu
 """
 
+import sys
 from os import path
+from io import StringIO
 import tkinter as tk
-#from tkinter import ttk
-#from tkinter import messagebox
 from tkinter import filedialog
+from txtwin import TxtWin
 from shp2dxf import Shp2Dxf
 
 class Shp2DxfGui(tk.Tk):
@@ -100,9 +101,14 @@ class Shp2DxfGui(tk.Tk):
         if not path.exists(rules_table):
             tk.messagebox.showerror(title="Hiba", message="konverziós szabályok tábla fájl nem létezik")
             return
-
+        old_stdout = sys.stdout
+        sys.stdout = string_io = StringIO()
         s = Shp2Dxf(inp_dir, templ_name, out_name, rules_table)
         s.convert()
+        txt_out = string_io.getvalue()
+        if len(txt_out) > 0:
+            TxtWin(txt_out, self)
+        sys.stdout = old_stdout
         exit()
 
 if __name__ == "__main__":

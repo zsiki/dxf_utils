@@ -5,11 +5,14 @@
     (c) Zoltan Siki siki (dot) zoltan (at) emk.bme.hu
 """
 
+import sys
 from os import path
+from io import StringIO
 import tkinter as tk
 #from tkinter import ttk
 #from tkinter import messagebox
 from tkinter import filedialog
+from txtwin import TxtWin
 from cp2templ import Cp2Templ
 
 class Cp2TemplGui(tk.Tk):
@@ -119,8 +122,14 @@ class Cp2TemplGui(tk.Tk):
         if len(block_table) > 0 and not path.exists(block_table):
             tk.messagebox.showerror(title="Hiba", message="Blokk tábla fájl nem létezik")
             return
+        old_stdout = sys.stdout
+        sys.stdout = string_io = StringIO()
         cp = Cp2Templ(dxf_name, templ_name, out_file, layer_table, block_table)
         cp.copy()
+        txt_out = string_io.getvalue()
+        if len(txt_out) > 0:
+            TxtWin(txt_out, self)
+        sys.stdout = old_stdout
         exit()
 
 if __name__ == "__main__":

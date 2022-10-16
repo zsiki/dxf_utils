@@ -5,11 +5,14 @@
     (c) Zoltan Siki siki (dot) zoltan (at) emk.bme.hu
 """
 
+import sys
 from os import path
+from io import StringIO
 import tkinter as tk
 #from tkinter import ttk
 #from tkinter import messagebox
 from tkinter import filedialog
+from txtwin import TxtWin
 from block2svg import Block2
 
 class Blk2SvgGui(tk.Tk):
@@ -129,9 +132,15 @@ class Blk2SvgGui(tk.Tk):
         if len(color) == 0:
             tk.messagebox.showerror(title="Hiba", message="Szín üres")
             return
+        old_stdout = sys.stdout
+        sys.stdout = string_io = StringIO()
         b = Block2(dxf_name, block_name, out_path, out_type,
                    width, height, False, scale, lwidth, color)
         b.convert()
+        txt_out = string_io.getvalue()
+        if len(txt_out) > 0:
+            TxtWin(txt_out, self)
+        sys.stdout = old_stdout
         exit()
 
 if __name__ == "__main__":
