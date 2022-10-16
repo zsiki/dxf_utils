@@ -94,11 +94,13 @@ class DxfInfo():
         print(80 * '-', file=self.out)
         print(f"Template: {self.template_file}", file=self.out)
         if len(missing) > 0:
-            print("Missing layers:", file=self.out)
+            print("\nMissing layers:", file=self.out)
+            print(80 * '=', file=self.out)
             for layer in missing:
                 print(layer, file=self.out)
         if len(extra) > 0:
-            print("Extra layers:", file=self.out)
+            print("\nExtra layers:", file=self.out)
+            print(80 * '=', file=self.out)
             for layer in extra:
                 print(layer, file=self.out)
 
@@ -111,11 +113,13 @@ class DxfInfo():
         print(80 * '-', file=self.out)
         print(f"Template: {self.template_file}", file=self.out)
         if len(missing) > 0:
-            print("Missing blocks:", file=self.out)
+            print("\nMissing blocks:", file=self.out)
+            print(80 * '=', file=self.out)
             for block in missing:
                 print(block, file=self.out)
         if len(extra) > 0:
-            print("Extra blocks:", file=self.out)
+            print("\nExtra blocks:", file=self.out)
+            print(80 * '=', file=self.out)
             for block in extra:
                 print(block, file=self.out)
 
