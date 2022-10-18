@@ -3,6 +3,7 @@
     Generate report from a DXF file
 """
 import sys
+import os.path
 import argparse
 import numpy as np
 import ezdxf
@@ -65,6 +66,8 @@ class DxfInfo():
         if output_file == 'stdout':
             self.out = sys.stdout
         else:
+            if os.path.splitext(output_file)[1].lower != '.txt':
+                output_file += ".txt"
             try:
                 self.out = open(output_file, 'w')
             except:
