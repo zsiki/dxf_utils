@@ -34,6 +34,9 @@ class Cp2Templ():
         """ intialize """
         self.dxf_file = dxf_file
         self.template_file = template_file
+        # add missing extension to output file
+        if len(os.path.splitext(out_file[1]) == 0:
+            out_file += '.dxf'
         self.out_file = out_file
         try:
             self.doc = ezdxf.readfile(dxf_file)

@@ -66,7 +66,8 @@ class DxfInfo():
         if output_file == 'stdout':
             self.out = sys.stdout
         else:
-            if os.path.splitext(output_file)[1].lower != '.txt':
+            # add .txt extenion if missing
+            if len(os.path.splitext(output_file)[1]) == 0:
                 output_file += ".txt"
             try:
                 self.out = open(output_file, 'w')
