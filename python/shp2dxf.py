@@ -5,7 +5,7 @@
     based on a rule file
 
     rule file may have from 2 to 5 fields separated by semicolon(;)
-    1st field: unique part of the shaape file to use as source for this rule
+    1st field: unique part of the shape file as glob pattern to use as source for this rule
     2nd field: target layer name in destination DXF file
     3rd field: attribute name to use in rule (optional)
     4th field: attribute value for rule (optional)
@@ -15,6 +15,7 @@
 """
 import os.path
 import glob
+import fnmatch
 import argparse
 from math import isclose
 import ezdxf
@@ -55,6 +56,8 @@ class Shp2Dxf():
         self.shp_paths = glob.glob(os.path.join(shp_dir, '*.shp'))
         self.shp_names = [os.path.split(path)[1] for path in self.shp_paths]
         self.doc = ezdxf.readfile(dxf_template) # load template DXF
+        if len(os.path.splitext(dxf_out)) == 0:
+            dxf_out += '.dxf'
         self.dxf_out = dxf_out
         self.rules = self.load_rules(rules)     # load rules
 
@@ -103,7 +106,8 @@ class Shp2Dxf():
     def shpid2path(self, shp_id):
         """ extend shp id to path """
         for name, path in zip(self.shp_names, self.shp_paths):
-            if name.find(shp_id) > -1:
+            #if name.find(shp_id) > -1:
+            if fnmatch.fnmatch(name, shp_id):
                 return path
         return None
 
