@@ -7,10 +7,13 @@
     rule file may have from 2 to 5 fields separated by semicolon(;)
     1st field: unique part of the shape file as glob pattern to use as source for this rule
     2nd field: target layer name in destination DXF file
-    3rd field: attribute name to use in rule (optional)
-    4th field: attribute value for rule (optional)
+    3rd field: attribute name(s) to use in rule (optional), names separated by &
+    4th field: attribute value(s) for rule (optional)
     5th field: block name to insert in case of point shape (optional)
     shp_id dxf_layer shp_attr_name shp_attr_value dxf_block_name
+
+    Sample rules:
+
 
 """
 import os.path
@@ -24,8 +27,8 @@ from osgeo import ogr
 # column index fro rules
 SHP_ID = 0
 DXF_LAYER = 1
-SHP_ATTR_NAME = 2
-SHP_ATTR_VALUE = 3
+SHP_ATTR_NAMES = 2
+SHP_ATTR_VALUES = 3
 DXF_BLOCK_NAME = 4
 
 # shape types
@@ -81,12 +84,18 @@ class Shp2Dxf():
                     continue
                 # check empty and replace with None
                 line_list = [None if len(x.strip()) == 0 else x.strip() for x in line_list]
-                if len(line_list) > 3 and line_list[3] is not None:
-                    if line_list[3].find(',') > -1: # coma separated values
-                        val_list = [x.strip() for x in line_list[3].split(',')]
-                    else:
-                        val_list = [line_list[3]]
-                    line_list[3] = val_list
+                if len(line_list) > 3 and line_list[2] is not None and \
+                   line_list[3] is not None:
+                    col_list = [x.strip().lower() for x in line_list[2].split('&')]
+                    tmp_list = [x.strip() for x in line_list[3].split('&')]
+                    if len(col_list) != len(tmp_list):
+                        print('ERROR')
+                        continue
+                    val_lists = []
+                    for vals in tmp_list:
+                        val_lists.append([x.strip() for x in vals.split(',')])
+                    line_list[2] = col_list
+                    line_list[3] = val_lists
                 res.append(line_list)
         res.sort()  # sort by shp name
         return res
@@ -111,6 +120,21 @@ class Shp2Dxf():
                 return path
         return None
 
+    @staticmethod
+    def filter(feature, attr_names, attr_values):
+        """ check condition for attributes
+
+            :param feature: feature from shp file
+            :param attr_names: list of column names for condition
+            :param attr_values: list of list with valid values
+            :returns: True/False
+        """
+        for attr_name, attr_value in zip(attr_names, attr_values):
+            if str(feature.GetField(attr_name)) not in attr_value:
+                return False
+        return True
+
+
     def convert(self):
         """ convert the shp files to dxf using rules """
         templ_layers = [layer.dxf.name for layer in self.doc.layers]
@@ -123,12 +147,12 @@ class Shp2Dxf():
                 print(f"Missing layer in DXF template: {dxf_layer}")
                 continue
             shp_path = self.shpid2path(shp_id)
-            shp_attr_name = None
-            if len(rule) > 2 and rule[SHP_ATTR_NAME] is not None:
-                shp_attr_name = rule[SHP_ATTR_NAME].lower()
-            shp_attr_value = None
-            if len(rule) > 3 and rule[SHP_ATTR_VALUE] is not None:
-                shp_attr_value = rule[SHP_ATTR_VALUE]
+            shp_attr_names = None
+            if len(rule) > 2 and rule[SHP_ATTR_NAMES] is not None:
+                shp_attr_names = rule[SHP_ATTR_NAMES]
+            shp_attr_values = None
+            if len(rule) > 3 and rule[SHP_ATTR_VALUES] is not None:
+                shp_attr_values = rule[SHP_ATTR_VALUES]
             dxf_block_name = None
             if len(rule) > 4 and rule[DXF_BLOCK_NAME] is not None:
                 dxf_block_name = rule[DXF_BLOCK_NAME]
@@ -143,15 +167,17 @@ class Shp2Dxf():
                     print(f"Invalid Shape type {geom_type}")
                     shp_file = None     # close shp
                     continue    # skip unsupported shape type
-                # collect field names (UPPER CASE)
+                # collect field names
                 field_names = [field.name.lower() for field in shp_layer.schema]
-                if shp_attr_name and shp_attr_name not in field_names:
-                    print(f"Invalid attribute name {shp_attr_name}")
-                    shp_file = None     # close shp
-                    continue    # attribute not in shape file skip
+                if shp_attr_names:
+                    for shp_attr_name in shp_attr_names:
+                        if shp_attr_name not in field_names:
+                            print(f"Invalid attribute name {shp_attr_name}")
+                            shp_file = None     # close shp
+                            continue    # attribute not in shape file skip
                 for feature in shp_layer:
-                    if shp_attr_name is None or shp_attr_value is None or \
-                       str(feature.GetField(shp_attr_name)) in shp_attr_value:
+                    if shp_attr_names is None or shp_attr_values is None or \
+                       self.filter(feature, shp_attr_names, shp_attr_values):
                         # copy geometry to target layer
                         geom = feature.GetGeometryRef()
                         if geom_type in (SHP_POINT, SHP_POINTZ, SHP_POINTM):
