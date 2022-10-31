@@ -5,12 +5,13 @@
     the layer and block tables are not copied
 """
 import sys
+import os
 import argparse
 import ezdxf
 from ezdxf.addons import Importer
 
-# TODO set linewidth to BYLAYER 
-# 3D vertices are changed to 2D verices in the 3D polyline (AutoCAD 2023 doesn't like it)
+# 3D vertices are changed to 2D verices in the 3D polyline by ezdxf (AutoCAD 2023 doesn't like it)
+# a workaround added in the code
 
 BYLAYER_COLOR = 256         # BYLAYER color
 BYLAYER_LTYPE = "BYLAYER"   # BYLAYER linetype
