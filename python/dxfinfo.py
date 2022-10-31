@@ -8,8 +8,8 @@ import argparse
 import numpy as np
 import ezdxf
 
-LAYER_FIELD = 32        # length of layer name in output
-NUMBER_FIELD = 6        # length of entity counts in output
+LAYER_FIELD = 32        # default length of layer name field in output
+NUMBER_FIELD = 6        # default length of entity counts in output
 
 dxf2cad_version = {'AC1002': 'AutoCAD R2',
                    'AC1004': 'AutoCAD R9',
@@ -38,8 +38,11 @@ class DxfInfo():
         :param dxf_file: the dxf file to process
         :param template_file: dxf file to compare layers and blocks
         :param output_file: output txt file
+        :param layer_name: layer name length in output
+        :param num_length: length of numbers in output
     """
-    def __init__(self, dxf_file, template_file, output_file):
+    def __init__(self, dxf_file, template_file, output_file,
+                 layer_name=LAYER_FIELD, num_length=NUMBER_FIELD):
         """ initialize object """
         self.dxf_file = dxf_file
         self.template_file = template_file
@@ -77,6 +80,8 @@ class DxfInfo():
         self.entities = None
         self.layers = None
         self.blocks = None
+        self.layer_name = layer_name
+        self.num_length = num_length
 
     def print_row(self, lay, lay_row):
         """ print a row of table
@@ -84,9 +89,9 @@ class DxfInfo():
             :param lay: layer name
             :param lay_row: numpy vector of entity counts
         """
-        print(f'{lay[:LAYER_FIELD]:{LAYER_FIELD}s}', end=' ', file=self.out)
+        print(f'{lay[:self.layer_name]:{self.layer_name}s}', end=' ', file=self.out)
         for i in range(lay_row.shape[0]):
-            print(f'{lay_row[i]:{NUMBER_FIELD}d}', end=' ', file=self.out)
+            print(f'{lay_row[i]:{self.num_length}d}', end=' ', file=self.out)
         print(file=self.out)
 
     def layer_compare(self):
@@ -162,11 +167,11 @@ class DxfInfo():
         num_ent_types = len(entities_found)
         entity_dict = {e[1]:e[0] for e in enumerate(entities_found)}
         # print header of table
-        print(f'\n{"Layer":{LAYER_FIELD}s}', end=' ', file=self.out)
+        print(f'\n{"Layer":{self.layer_name}s}', end=' ', file=self.out)
         layer_row = np.zeros(num_ent_types, dtype=np.int32)
         total_row = np.zeros(num_ent_types, dtype=np.int32)
         for e in entities_found:
-            print(f'{e[:NUMBER_FIELD]:>{NUMBER_FIELD}s}', end=' ', file=self.out)
+            print(f'{e[:self.num_length]:>{self.num_length}s}', end=' ', file=self.out)
         print(file=self.out)
         last_layer = ""
         for key in keys:
@@ -190,10 +195,15 @@ if __name__ == '__main__':
                         help='DXF file to process')
     parser.add_argument('-t', '--template', type=str, default=None,
                         help='Template DXF to compare layers, blocks (optional)')
+    parser.add_argument('-l', '--layer_name', type=int, default=LAYER_FIELD,
+                        help=f'Length of layer name field in output, default: {LAYER_FIELD}')
+    parser.add_argument('-n', '--num_length', type=int, default=NUMBER_FIELD,
+                        help=f'Length of numbers in output, default: {NUMBER_FIELD}')
     parser.add_argument('-o', '--out_file', type=str, default='stdout',
                         help='output file name, default: stdout')
     args = parser.parse_args()
-    DI = DxfInfo(args.name[0], args.template, args.out_file)
+    DI = DxfInfo(args.name[0], args.template, args.out_file, args.layer_name,
+                 args.num_length)
     DI.dxf_info()
     if args.template:
         DI.layer_compare()
