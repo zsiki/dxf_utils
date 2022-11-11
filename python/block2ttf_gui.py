@@ -21,6 +21,7 @@ class Blk2TtfGui(tk.Tk):
         tk.Tk.__init__(self)
         self.dxf_file = ""
         self.out_dir = "."
+        self.chcodes_file = ""
         self.title("Blokk -> TTF konverter")
 
         self.dxf_label = tk.Label(self, text="DXF input fájl: ")
@@ -79,7 +80,8 @@ class Blk2TtfGui(tk.Tk):
 
     def select_in(self):
         """ input file name selection and add to entry """
-        self.dxf_file = filedialog.askopenfilename(title="DXF fájl kiválasztása", filetypes=[("DXF files", "*.dxf")])
+        self.dxf_file = filedialog.askopenfilename(title="DXF fájl kiválasztása",
+                                                   filetypes=[("DXF files", "*.dxf")])
         self.dxf_entry.delete(0, tk.END)
         self.dxf_entry.insert(0, self.dxf_file)
 
@@ -91,7 +93,8 @@ class Blk2TtfGui(tk.Tk):
 
     def select_chcodes(self):
         """ character code file selection and add to entry """
-        self.chcodes_file = filedialog.askopenfilename(title="Karakter kód fájl kiválasztása", filetypes=[("TXT files", "*.txt"),("All files", "*")])
+        self.chcodes_file = filedialog.askopenfilename(title="Karakter kód fájl kiválasztása",
+                                                       filetypes=[("TXT files", "*.txt"),("All files", "*")])
         self.chcodes_entry.delete(0, tk.END)
         self.chcodes_entry.insert(0, self.chcodes_file)
 
@@ -146,4 +149,3 @@ class Blk2TtfGui(tk.Tk):
 if __name__ == "__main__":
     conv = Blk2TtfGui()
     conv.mainloop()
-    

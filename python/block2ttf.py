@@ -2,7 +2,7 @@
 
 
 """
-Some of the functions below are redistributed wit or without modification
+Some of the functions below are redistributed with or without modification
 from C64 Character Set to TrueType Converter (c64ttf.py) at https://github.com/atbrask/c64ttf
 According to the copyright conditions we copied all the conditions here:
 
@@ -11,12 +11,12 @@ Version 1.4
 Copyright (c) 2013-2020, A.T.Brask (atbrask[at]gmail[dot]com)
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met: 
+modification, are permitted provided that the following conditions are met:
 1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer. 
+   list of conditions and the following disclaimer.
 2. Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution. 
+   and/or other materials provided with the distribution.
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34,9 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 import os
 import fnmatch
 import argparse
-import ezdxf
-import array
 import time
+import array
+import ezdxf
 
 from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables import ttProgram
@@ -388,8 +388,16 @@ CMAP_MACROMAN = [[0x0, ".null"],
 
 
 class TT():
+    """ class to convert DXF blocks to TTF
 
-    def __init__(self,dxf_name,out_file,fontname,unitsPerEm,line_width):
+        :param dxf_name: name of input DXF file with blocks
+        :param out_file: name of output TTF file
+        :param fontname: internal name of font
+        :param unitsPerEm: TODO
+        :param line_width: line width for symbols
+    """
+    def __init__(self,dxf_name, out_file, fontname, unitsPerEm, line_width):
+        """ initialize object """
         self.dxf_name = dxf_name
         self.out_file = out_file
         self.fontname = fontname
@@ -400,6 +408,7 @@ class TT():
         self.glyphs = self.makeEmptyGlyphs()
 
     def makeEmptyGlyphs(self):
+        """ TODO """
         bitmap = dict()
         bitmap[".notdef"] = [ [[[-382,0],[-382,2048],[382,2048],[382,0]],[[-256,130],[256,130],[256,1918],[-256,1918]]], []] # ide majd egy kontúrvonalakből álló tömb kell! A kontúrvonal egy koordinátákból álló tömb.
 #        bitmap[".notdef"] = [[],[]]
@@ -409,8 +418,9 @@ class TT():
         return bitmap
 
     def saveFont(self):
+        """ TODO """
         unicodes = [code for glyph in self.glyphs for code in self.glyphs[glyph][1]]
-        
+
         copyrightYear = time.strftime("%Y")
         creator = "Block2TTF"
         version = "1.0"
@@ -432,7 +442,7 @@ class TT():
         elif not os.path.exists(os.path.dirname(self.out_file)):
             print(f'out_file parameter has not a valid file or path name')
             self.out_file = self.dxf_name + '.ttf'
-            
+
         self.ttfont.save( self.out_file )
 
         # We have to compile the TTFont manually when saving as TTX
@@ -452,6 +462,7 @@ class TT():
 
     # glyf - Glyph Data
     def makeTable_glyf(self):
+        """ TODO """
         glyf = newTable("glyf")
         glyf.glyphs = {glyph: self.makeTTFGlyph(self.glyphs[glyph][0]) for glyph in self.glyphs}
 
@@ -474,6 +485,7 @@ class TT():
 
     # maxp - Maximum Profile
     def makeTable_maxp(self):
+        """ TODO """
         maxp = newTable("maxp")
 
         maxp.tableVersion = 0x00010000
@@ -496,11 +508,13 @@ class TT():
 
     # loca - Index to Location
     def makeTable_loca(self):
+        """ TODO """
         # Nothing to do here... Locations are auto-calculated by glyf.compile()
         self.ttfont["loca"] = newTable("loca")
 
     # head - Font Header
     def makeTable_head(self):
+        """ TODO """
         head = newTable("head")
 
         head.tableVersion = 1.0
@@ -525,6 +539,7 @@ class TT():
 
     # hmtx - Horizontal Metrics
     def makeTable_hmtx(self):
+        """ TODO """
         hmtx = newTable("hmtx")
         hmtx.metrics = dict()
 
@@ -542,6 +557,7 @@ class TT():
 
     # hhea - Horizontal Header
     def makeTable_hhea(self):
+        """ TODO """
         hhea = newTable("hhea")
 
         hhea.tableVersion = 1.0
@@ -566,6 +582,7 @@ class TT():
 
     # OS/2 - OS/2 and Windows Specific Metrics
     def makeTable_OS2(self, minUnicode, maxUnicode):
+        """ TODO """
         size = self.unitsPerEm
         descent = int(self.unitsPerEm/2)
 
@@ -624,6 +641,7 @@ class TT():
 
     # cmap - Character to Glyph Mapping
     def makeTable_cmap(self):
+        """ TODO """
         unicodeCMAP = {index: glyph for glyph in self.glyphs if glyph in self.ttfont["glyf"].glyphs for index in self.glyphs[glyph][1]}
         macRoman = dict(CMAP_MACROMAN)
 #        macRomanCMAP = {index: macRoman[index] if index in macRoman and macRoman[index] in self.ttfont["glyf"].glyphs else '.notdef' for index in range(256)}
@@ -657,6 +675,7 @@ class TT():
 
     # name - Naming Table
     def makeTable_name(self, subFamily, copyrightYear, creator, version):
+        """ TODO """
         copyright = "Copyright {0} {1}".format(copyrightYear, creator)
         fullName = "{0} {1}".format(self.fontname, subFamily)
         uniqueID = "{0} {1}".format(creator, fullName)
@@ -675,6 +694,7 @@ class TT():
         self.ttfont["name"] = name
 
     def makeNameRecord(self, nameID, string, platformID, platEncID, langID, encoding):
+        """ TODO """
         rec = NameRecord()
         rec.nameID = nameID
         rec.platformID = platformID
@@ -685,6 +705,7 @@ class TT():
 
     # post - Postscript Information
     def makeTable_post(self):
+        """ TODO """
         post = newTable("post")
 
         post.glyphOrder = []
@@ -734,7 +755,7 @@ class Block2TTF():
 
     def convert(self):
         """ convert blocks """
-        
+
         # processing input dxf file
         doc = ezdxf.readfile(self.dxf_name)
         for block in doc.blocks:
@@ -744,7 +765,7 @@ class Block2TTF():
                         print(block.name)
                     self.block2tt(block)
 
-        if self.charcodes_file is None:                    
+        if self.charcodes_file is None:
             # without "--charcodes" parameter characters assigned to blocks in the order of the blocks in DXF
             self.tt.glyphs.update( {char[1] : [self.block_contours[char[0]][1], char[2]] for char in CMAP_UNI if char[0] < len(self.block_contours)} )
         else:
@@ -757,39 +778,39 @@ class Block2TTF():
             if not len(lines):
                 print("Empty character code file. ")
                 return
-            
+
             for i, line in enumerate(lines):
                 block_char = line.strip().split("\t")
-                
+
                 # bad line if
                 # 1. line does not consist of 2 elements
                 # 2. 1st and 2nd elements are not strings
-                # 3. 2nd string not only contains digits 
+                # 3. 2nd string not only contains digits
                 if len(block_char) != 2 or not isinstance(block_char[0], str) or \
                     not isinstance(block_char[1], str) or not block_char[1].isdigit():
                     print(f"Bad line in character code file in line {i+1}.")
                     continue
-                    
+
                 block_charcode = int(block_char[1])
-                
+
                 # if charcode in file not exists in CMAP_UNI
                 if not any( ( block_charcode in char[2] for char in CMAP_UNI) ):
                     print(f"Unsupported character code {block_char[1]} in line {i+1}.")
                     continue
-                
+
                 # if block name in file not exist in DXF
                 if not any( (block_contour[0]==block_char[0] for block_contour in self.block_contours) ):
                     print(f"Can't find block name from character code file in DXF: {block_char[0]}.")
                     continue
-                
+
                 char_id = [char[0] for char in CMAP_UNI if block_charcode in char[2]][0]
                 block_contours = [block_contour[1] for block_contour in self.block_contours if block_contour[0]==block_char[0]][0]
-                
+
                 self.tt.glyphs.update( {CMAP_UNI[char_id][1] : [block_contours, CMAP_UNI[char_id][2]]} )
 
             if self.verbose:
                 print("Input charcode file {0} successfully processed.".format(self.charcodes_file))
-    
+
         self.tt.saveFont()
 
 
@@ -842,7 +863,7 @@ class Block2TTF():
                 arc = LineString(numpy.column_stack([x, y]))
                 arcbuf = arc.buffer( self.line_width/2, cap_style=2 )
                 geoms_union = geoms_union.union(arcbuf)
-                
+
             elif typ == "HATCH":
 
                 # only external border is considered
@@ -853,12 +874,12 @@ class Block2TTF():
                         p = []
                         for v in entity.paths.paths[0].vertices:
                             p.append( ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale) )
-                        if len(p)>2: 
+                        if len(p)>2:
                             hatch_polygons = [ Polygon(p) ]
                         else:
                             print(f'Unsupported HATCH boundary type (2 point polygon), block: {block.name}')
                             hatch_polygons = [ Polygon() ]
-                        
+
                     elif isinstance(entity.paths.paths[0],
                                     ezdxf.entities.boundary_paths.EdgePath):
 
@@ -870,7 +891,7 @@ class Block2TTF():
                                     round((edge.start_point[1] - y0) * self.scale)),
                                     (round((edge.end_point[0] - x0) * self.scale),
                                      round((edge.end_point[1] - y0) * self.scale))))
-                                
+
                             elif isinstance(edge, ezdxf.entities.boundary_paths.ArcEdge):
                                 #edge.end_angle = min(edge.end_angle, 359.9)
 
@@ -882,7 +903,7 @@ class Block2TTF():
                                 theta = numpy.radians(numpy.linspace(edge.start_angle, (edge.end_angle if angle_diff>0 else edge.end_angle+360.0), numsegments))
                                 x = ((edge.center[0] + edge.radius * numpy.cos(theta))-x0) * self.scale
                                 y = ((edge.center[1] + edge.radius * numpy.sin(theta))-y0) * self.scale
-                              
+
                                 linestrings.append( tuple( (round(p[0]),round(p[1])) for p in numpy.column_stack([x, y])) )
 
                             elif isinstance(edge, ezdxf.entities.boundary_paths.EllipseEdge):
@@ -896,14 +917,14 @@ class Block2TTF():
                             hatch_polygons = list(polygonize(linestrings))
                         else:
                             hatch_polygons = [Polygon()]
-                                
+
                     else:
                         print(f'Unsupported HATCH boundary type, block: {block.name}')
                         continue
-                    
+
                     for hatch_polygon in hatch_polygons:
                         geoms_union = geoms_union.union(hatch_polygon)
-                    
+
                 else:
                     print(f'HATCH with solid fill are only supported, block: {block.name}')
 
@@ -916,10 +937,10 @@ class Block2TTF():
                     polyline = LinearRing(p)
                 else:
                     polyline = LineString(p)
-                    
+
                 polylinebuf = polyline.buffer( self.line_width/2, cap_style=2 )
                 geoms_union = geoms_union.union(polylinebuf)
-                
+
             elif typ == "POLYLINE":
                 if entity.get_mode() in ['AcDb2dPolyline', 'AcDb3dPolyline']:
                     p = []
@@ -929,7 +950,7 @@ class Block2TTF():
                         polyline = LinearRing(p)
                     else:
                         polyline = LineString(p)
-                    
+
                     polylinebuf = polyline.buffer( self.line_width/2, cap_style=2 )
                     geoms_union = geoms_union.union(polylinebuf)
 
@@ -941,14 +962,14 @@ class Block2TTF():
 
         if geoms_union.is_empty or not geoms_union.is_valid:
             return
-        
+
         if geoms_union.geom_type == "Polygon":
-            contours = contours + self.Polygon2Contours(geoms_union) 
+            contours = contours + self.Polygon2Contours(geoms_union)
         elif geoms_union.geom_type in ["MultiPolygon","GeometryCollection"]:
             for geom in list(geoms_union.geoms):
                 if geom.geom_type == "Polygon":
                     contours = contours + self.Polygon2Contours(geom)
-                    
+
         self.block_contours.append( [block.name, contours] )
         if self.verbose:
             print(f"{block.name} block successfully converted.")
@@ -996,5 +1017,3 @@ if __name__ == "__main__":
     b = Block2TTF(args.name[0], args.charcodes, args.block, args.out_file, args.fontname,
                   args.units_per_em, args.scale, args.lwidth, args.verbose)
     b.convert()
-
-
