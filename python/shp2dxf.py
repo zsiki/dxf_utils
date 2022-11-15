@@ -16,6 +16,7 @@
 
 
 """
+import sys
 import os.path
 import glob
 import fnmatch
@@ -51,9 +52,11 @@ class Shp2Dxf():
         :param dxf_template: empty template drawing with layer and block definitions
         :param dxf_out: name of output DXF file
         :param rules: name of the text file with rules
+        :param encoding: encoding for rules file
+        :param verbose: verbose output to stdout
     """
 
-    def __init__(self, shp_dir, dxf_template, dxf_out, rules):
+    def __init__(self, shp_dir, dxf_template, dxf_out, rules, encoding, verbose):
         """ initialize """
         # get name of shape files
         self.shp_paths = glob.glob(os.path.join(shp_dir, '*.shp'))
@@ -62,16 +65,17 @@ class Shp2Dxf():
         if len(os.path.splitext(dxf_out)) == 0:
             dxf_out += '.dxf'
         self.dxf_out = dxf_out
-        self.rules = self.load_rules(rules)     # load rules
+        self.rules = self.load_rules(rules, encoding)     # load rules
+        self.verbose = verbose
 
     @staticmethod
-    def load_rules(rules):
+    def load_rules(rules, encoding):
         """ load the conversion rules from an ASCII file
             shp_id dxf_layer shp_attr_name shp_attr_value dxf_block_name
-            shp_id is a unique part of the shp file name
+            shp_id is a glob pattern for the shp file name
         """
         res = []
-        with open(rules, 'r') as rule_file:
+        with open(rules, 'r', encoding=encoding) as rule_file:
             for line in rule_file.readlines():
                 line = line.strip(' \t\n\r')
                 if line.startswith('#'):
@@ -89,7 +93,7 @@ class Shp2Dxf():
                     col_list = [x.strip().lower() for x in line_list[2].split('&')]
                     tmp_list = [x.strip() for x in line_list[3].split('&')]
                     if len(col_list) != len(tmp_list):
-                        print('ERROR')
+                        print(f'ERROR in rule skipped\n{line}')
                         continue
                     val_lists = []
                     for vals in tmp_list:
@@ -112,13 +116,16 @@ class Shp2Dxf():
                 return False
         return True
 
-    def shpid2path(self, shp_id):
-        """ extend shp id to path """
+    def shpid2paths(self, shp_id):
+        """ extend shp id to path list
+
+            :param shp_id: glob pattern to match to shape names
+        """
+        found_path = []
         for name, path in zip(self.shp_names, self.shp_paths):
-            #if name.find(shp_id) > -1:
-            if fnmatch.fnmatch(name, shp_id):
-                return path
-        return None
+            if fnmatch.fnmatch(name, shp_id):   # glob match?
+                found_path.append(path)
+        return found_path
 
     @staticmethod
     def filter(feature, attr_names, attr_values):
@@ -134,7 +141,6 @@ class Shp2Dxf():
                 return False
         return True
 
-
     def convert(self):
         """ convert the shp files to dxf using rules """
         templ_layers = [layer.dxf.name for layer in self.doc.layers]
@@ -145,8 +151,13 @@ class Shp2Dxf():
             dxf_layer = rule[DXF_LAYER]     # target dxf layer
             if dxf_layer not in templ_layers:
                 print(f"Missing layer in DXF template: {dxf_layer}")
+                print("Rule skipped")
                 continue
-            shp_path = self.shpid2path(shp_id)
+            shp_paths = self.shpid2paths(shp_id)
+            if len(shp_paths) == 0:
+                print(f"No match for shp name pattern: {shp_id}")
+                print("Rule skipped")
+                continue
             shp_attr_names = None
             if len(rule) > 2 and rule[SHP_ATTR_NAMES] is not None:
                 shp_attr_names = rule[SHP_ATTR_NAMES]
@@ -158,13 +169,17 @@ class Shp2Dxf():
                 dxf_block_name = rule[DXF_BLOCK_NAME]
                 if dxf_block_name not in templ_blocks:
                     print(f"Missing block definition in DXF template: {dxf_block_name}")
+                    print("Rule skipped")
                     continue
-            if shp_path:   # is there an input shp?
+            for shp_path in shp_paths:   # iprocess input shp files
+                if self.verbose:
+                    print(f"{shp_path} to {dxf_layer}")
                 shp_file = ogr.Open(shp_path)
                 shp_layer = shp_file.GetLayer(0)
                 geom_type = shp_layer.GetGeomType()
                 if geom_type not in SHP_TYPES:
-                    print(f"Invalid Shape type {geom_type}")
+                    print(f"Invalid Shape type {geom_type} in {shp_path}")
+                    print(f"Rule skippedi for {shp_path}")
                     shp_file = None     # close shp
                     continue    # skip unsupported shape type
                 # collect field names
@@ -173,11 +188,14 @@ class Shp2Dxf():
                     for shp_attr_name in shp_attr_names:
                         if shp_attr_name not in field_names:
                             print(f"Invalid attribute name {shp_attr_name}")
+                            print(f"Rule skippedi for {shp_path}")
                             shp_file = None     # close shp
                             continue    # attribute not in shape file skip
+                n_feature = 0
                 for feature in shp_layer:
                     if shp_attr_names is None or shp_attr_values is None or \
                        self.filter(feature, shp_attr_names, shp_attr_values):
+                        n_feature += 1  # count of converted items
                         # copy geometry to target layer
                         geom = feature.GetGeometryRef()
                         if geom_type in (SHP_POINT, SHP_POINTZ, SHP_POINTM):
@@ -205,6 +223,8 @@ class Shp2Dxf():
                                 else:
                                     msp.add_polyline3d(pnts, close=True,
                                                        dxfattribs={'layer': dxf_layer})
+                if self.verbose:
+                    print(f"{n_feature} features added to DXF")
                 shp_file = None
         self.doc.saveas(self.dxf_out)
 
@@ -218,6 +238,11 @@ if __name__ == "__main__":
                         help='Output DXF file')
     parser.add_argument('-t', '--template', type=str,
                         help='Template for DXF output')
+    parser.add_argument('-e', '--encoding', type=str, default=sys.getdefaultencoding(),
+                        help=f'Encoding for rules file, default {sys.getdefaultencoding()}')
+    parser.add_argument('-v', '--verbose', action="store_true",
+                        help='verbose output to stdout')
     args = parser.parse_args()
-    S2D = Shp2Dxf(args.dir[0], args.template, args.out_dxf, args.rules)
+    S2D = Shp2Dxf(args.dir[0], args.template, args.out_dxf, args.rules,
+                  args.encoding, args.verbose)
     S2D.convert()
