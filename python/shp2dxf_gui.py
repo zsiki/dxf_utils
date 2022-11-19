@@ -54,8 +54,14 @@ class Shp2DxfGui(tk.Tk):
         self.rules_entry.grid(row=3, column=1, sticky="w")
         self.rules_select.grid(row=3, column=2, sticky="w")
 
+        self.verbose= tk.IntVar(self, value=0)
+        self.verbose_label = tk.Checkbutton(self, text="Részletes info",
+                                            variable=self.verbose, onvalue=1,
+                                            offvalue=0)
+        self.verbose_label.grid(row=4, column=1, sticky="w")
+
         self.go_button = tk.Button(self, text="Indít", command=self.go)
-        self.go_button.grid(row=4, column=2)
+        self.go_button.grid(row=5, column=2)
 
     def select_inp(self):
         """ output folder selection and add to entry """
@@ -103,7 +109,10 @@ class Shp2DxfGui(tk.Tk):
             return
         old_stdout = sys.stdout
         sys.stdout = string_io = StringIO()
-        s = Shp2Dxf(inp_dir, templ_name, out_name, rules_table)
+        encoding = sys.getdefaultencoding()
+        verbose = self.verbose.get()
+        print(self.verbose)
+        s = Shp2Dxf(inp_dir, templ_name, out_name, rules_table, encoding, verbose)
         s.convert()
         txt_out = string_io.getvalue()
         if len(txt_out) > 0:
