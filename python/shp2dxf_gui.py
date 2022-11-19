@@ -118,7 +118,7 @@ class Shp2DxfGui(tk.Tk):
         if len(txt_out) > 0:
             TxtWin(txt_out, self)
         sys.stdout = old_stdout
-        exit()
+        self.quit()
 
 if __name__ == "__main__":
     conv = Shp2DxfGui()
