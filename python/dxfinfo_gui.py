@@ -92,7 +92,7 @@ class DxfInfoGui(tk.Tk):
         if len(txt_out) > 0:
             TxtWin(txt_out, self)
         sys.stdout = old_stdout
-        selt.quit()
+        self.quit()
 
 if __name__ == "__main__":
     info = DxfInfoGui()
