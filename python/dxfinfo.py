@@ -30,7 +30,7 @@ def cad_version(dxf_version):
     """
     if dxf_version in dxf2cad_version:
         return dxf2cad_version[dxf_version]
-    return ''
+    return dxf_version  # unknown version return code name
 
 class DxfInfo():
     """ class to collect DXF information
