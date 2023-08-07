@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
 """ create a csv file from dxf INSERT entites
-    x, y, z, layer, rotation, scale_x scale_y, scale_z, block_name
-    are written to the output
+    position (x, y, z), layer, rotation, sizex, sizey, name are written to the output
+    optionaly the attribute tags and values are appended
 """
 
 import sys
-import os.path
 import ezdxf
+import os.path
 
 def print_ins(e, fo):
-    """ Print data of an INSERT entity
-
-        :param e: INSERT entity object
-        :param fo: output file handle
-    """
-    pos = e.dxf.insert
-    print(f'{pos[0]:.3f};{pos[1]:.3f};{pos[2]:.3f};{e.dxf.layer};{e.dxf.rotation:.4f};{e.dxf.xscale:.3f};{e.dxf.yscale:.3f};{e.dxf.zscale:.3f};{e.dxf.name}', file=fo)
-
+    pos = e.ocs().to_wcs(e.dxf.insert)
+    a = ";".join([f"{a.dxf.tag}={a.dxf.text}" for a in e.attribs])
+    print(f'{pos[0]:.3f};{pos[1]:.3f};{pos[2]:.3f};{e.dxf.rotation:.4f};{e.dxf.xscale:.3f};{e.dxf.yscale:.3f};{e.dxf.layer};{e.dxf.name};{a}', file=fo)
+    
 if len(sys.argv) < 2:
     print(f'Usage: {sys.argv[0]} input_dxf [output_csv]')
     sys.exit(0)
@@ -38,7 +34,7 @@ except:
     sys.exit(2)
 
 # header for output
-print("x;y;z;layer;rotation;scalex;scaley;scalez;block_name", file=fo)
+print("x;y;z;rotation;sizex;sizey;layer;name", file=fo)
 msp = doc.modelspace()
 # entity query for all TEXT entities in modelspace
 for e in msp.query("INSERT"):
