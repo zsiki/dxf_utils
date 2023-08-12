@@ -14,4 +14,3 @@ Start scripts without any parameter or --help switch to get usage tipps
 * shp2dxf.py - convert a group of SHP to dxf
 * shp2dxf_guii.py - graphical user interface to shp2dxf.py
 * text2csv.py - create CSV file from the TEXT entities of a DXF file
-* ins2csv.py - create CSV file from the INSERT entities of a DXF file
