@@ -1,8 +1,9 @@
 #! /usr/bin/env python3
 """
-    Copy all entites from one DXF drawing to another
-    the layer and th inserted block names are preserved but
+    Copy entites from one DXF drawing to another using a template
+    the names of the layers and the inserted blocks are preserved but
     the layer and block tables are not copied
+    Layer and block names are optionally  replaced using lookup tables
 """
 import sys
 import os
