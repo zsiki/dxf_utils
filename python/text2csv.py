@@ -22,7 +22,6 @@ def print_mtext(e, fo):
         :param e: entity to process
         :param fo: output file to write to
     """
-    # TODO aligment is always 0
     pos = e.dxf.insert
     print(f'{pos[0]:.3f};{pos[1]:.3f};{pos[2]:.3f};{e.dxf.rotation:.4f};{e.dxf.layer};{"|".join(e.plain_text(split=True))}', file=fo)
     
@@ -47,7 +46,7 @@ except:
     sys.exit(2)
 
 # header for output
-print("x;y;z;align;rotation;layer;text", file=fo)
+print("x;y;z;rotation;layer;text", file=fo)
 msp = doc.modelspace()
 # entity query for all TEXT entities in modelspace
 for e in msp.query("TEXT"):
