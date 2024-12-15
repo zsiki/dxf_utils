@@ -13,5 +13,6 @@ Start scripts without any parameter or --help switch to get usage tipps
 * dxfinfo_gui.py - graphical user interface to dxfinfo.py
 * ins2csv.py - create CSV file from block insert entities of a DXF file
 * shp2dxf.py - convert a group of SHP to dxf
-* shp2dxf_guii.py - graphical user interface to shp2dxf.py
+* shp2dxf_gui.py - graphical user interface to shp2dxf.py
 * text2csv.py - create CSV file from the TEXT entities of a DXF file
+* blk2csv.py - create CSV file from the INSERT entities of a DXF file
