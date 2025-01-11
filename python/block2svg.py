@@ -8,7 +8,12 @@ import fnmatch
 import argparse
 from math import hypot, sin, cos, atan, atan2, pi
 import ezdxf
-import drawSvg as draw
+try: 
+    import drawSvg as draw
+except:
+    import drawsvg as draw  # drawsvg 2.4 and above
+    draw.Drawing.saveSvg = draw.Drawing.save_svg
+    draw.Drawing.savePng = draw.Drawing.save_svg
 
 class Block2():
     """ class to convert DXF blocks to other symbol formats
@@ -20,7 +25,7 @@ class Block2():
         :param width: width of SVG
         :param height: height of SVG
         :param verbose: verbose output
-        :param scale: scale for CAD coordinates
+        :param scale: scale for CAD coordinates, use -1 * scale for drawsvg >= 2.0
         :param lwidth: line width in SVG
         :param color: line and fill color in SVG
     """
