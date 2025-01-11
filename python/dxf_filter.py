@@ -7,6 +7,8 @@
 
     python dxf_filter.py --layers 0 1 --entities LINE TEXT -- input.dxf
     python dxf_filter.py --layers 0 1 --entities LINE TEXT --target out.dxf input.dxf
+
+    TODO LWPOLYLINE not in target
 """
 import sys
 import os.path
