@@ -4,8 +4,9 @@
 """
 
 import sys
-import ezdxf
 import os.path
+from math import atan2, pi
+import ezdxf
 
 def print_text(e, fo):
     """ print data of an TEXT entity
@@ -15,7 +16,7 @@ def print_text(e, fo):
     """
     pos = e.dxf.insert
     print(f'{pos[0]:.3f};{pos[1]:.3f};{pos[2]:.3f};{e.dxf.rotation:.4f};{e.dxf.layer};{e.dxf.text}', file=fo)
-    
+
 def print_mtext(e, fo):
     """ print data of an MTEXT entity, multiline texts are separated by '|'
 
@@ -23,8 +24,10 @@ def print_mtext(e, fo):
         :param fo: output file to write to
     """
     pos = e.dxf.insert
-    print(f'{pos[0]:.3f};{pos[1]:.3f};{pos[2]:.3f};{e.dxf.rotation:.4f};{e.dxf.layer};{"|".join(e.plain_text(split=True))}', file=fo)
-    
+    direct = e.dxf.text_direction
+    rot = atan2(direct[1], direct[0]) * 180 / pi
+    print(f'{pos[0]:.3f};{pos[1]:.3f};{pos[2]:.3f};{rot:.4f};{e.dxf.layer};{"|".join(e.plain_text(split=True))}', file=fo)
+
 if len(sys.argv) < 2:
     print(f'Usage: {sys.argv[0]} input_dxf [output_csv]')
     sys.exit(0)
@@ -40,7 +43,7 @@ except IOError:
     print(f'DXF input failed {fin}')
     sys.exit(1)
 try:
-    fo = open(fout, 'w')
+    fo = open(fout, 'w', encoding=sys.getdefaultencoding())
 except:
     print(f'File creation failed {fout}')
     sys.exit(2)
