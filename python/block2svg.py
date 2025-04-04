@@ -256,7 +256,7 @@ if __name__ == "__main__":
     parser.add_argument('-e', '--height', type=float, default=500.0,
                         help='SVG or image height, default=500')
     parser.add_argument('-s', '--scale', type=float, default=40.0,
-                        help='scale, default=40')
+                        help='scale, use negative scale for SVG 2, default=40')
     parser.add_argument('-l', '--lwidth', type=int, default=5,
                         help='line width, default=5')
     parser.add_argument('-c', '--color', type=str, default="black",
