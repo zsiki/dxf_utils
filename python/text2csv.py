@@ -24,8 +24,7 @@ def print_mtext(e, fo):
         :param fo: output file to write to
     """
     pos = e.dxf.insert
-    direct = e.dxf.text_direction
-    rot = atan2(direct[1], direct[0]) * 180 / pi
+    rot = e.get_rotation()
     print(f'{pos[0]:.3f};{pos[1]:.3f};{pos[2]:.3f};{rot:.4f};{e.dxf.layer};{"|".join(e.plain_text(split=True))}', file=fo)
 
 if len(sys.argv) < 2:
