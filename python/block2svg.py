@@ -40,7 +40,8 @@ class Block2():
         self.width = width
         self.height = height
         self.verbose = verbose
-        self.scale = scale
+        self.xscale = abs(scale)
+        self.yscale = scale
         self.line_width = lwidth
         self.color = color
 
@@ -103,37 +104,37 @@ class Block2():
         for entity in block:
             typ = entity.dxftype()
             if typ == "LINE":
-                x1 = (entity.dxf.start[0] - x0) * self.scale
-                y1 = (entity.dxf.start[1] - y0) * self.scale
-                x2 = (entity.dxf.end[0] - x0) * self.scale
-                y2 = (entity.dxf.end[1] - y0) * self.scale
+                x1 = (entity.dxf.start[0] - x0) * self.xscale
+                y1 = (entity.dxf.start[1] - y0) * self.yscale
+                x2 = (entity.dxf.end[0] - x0) * self.xscale
+                y2 = (entity.dxf.end[1] - y0) * self.yscale
                 d.append(draw.Lines(x1, y1, x2, y2, close=False,
                                     stroke_width=self.line_width, stroke=self.color))
             elif typ == "CIRCLE":
-                xc = (entity.dxf.center[0] - x0) * self.scale
-                yc = (entity.dxf.center[1] - y0) * self.scale
-                r = entity.dxf.radius * self.scale
+                xc = (entity.dxf.center[0] - x0) * self.xscale
+                yc = (entity.dxf.center[1] - y0) * self.yscale
+                r = entity.dxf.radius * self.xscale
                 d.append(draw.Circle(xc, yc, r, fill='none',
                                      stroke_width=self.line_width, stroke=self.color))
             #elif typ == "ELLIPSE":
-            #    xc = (entity.dxf.center[0] - x0) * self.scale
-            #    yc = (entity.dxf.center[1] - y0) * self.scale
+            #    xc = (entity.dxf.center[0] - x0) * self.xscale
+            #    yc = (entity.dxf.center[1] - y0) * self.yscale
             #    rx = (entity.dxf.major_axis)
             #    ry = (entity.dxf.minor_axis)
             #    d.append(draw.Ellipse(xc, yc, rx, ry,
             #                          stroke_width=self.line_width, stroke=self.color))
             elif typ == "ARC":
-                xc = (entity.dxf.center[0] - x0) * self.scale
-                yc = (entity.dxf.center[1] - y0) * self.scale
-                r = entity.dxf.radius * self.scale
-                d.append(draw.Arc(xc, yc, r, entity.dxf.start_angle,
-                                  entity.dxf.end_angle, cw=False, fill='none',
+                xc = (entity.dxf.center[0] - x0) * self.xscale
+                yc = (entity.dxf.center[1] - y0) * self.yscale
+                r = entity.dxf.radius * self.xscale
+                d.append(draw.Arc(xc, yc, r, entity.dxf.end_angle,
+                                  entity.dxf.start_angle, cw=False, fill='none',
                                   stroke_width=self.line_width, stroke=self.color))
             elif typ == "TEXT":
                 pos = entity.get_pos()
-                x = (pos[1][0] - x0) * self.scale
-                y = (pos[1][1] - y0) * self.scale
-                h = entity.dxf.height * self.scale
+                x = (pos[1][0] - x0) * self.xscale
+                y = (pos[1][1] - y0) * self.yscale
+                h = entity.dxf.height * self.xscale
                 d.append(draw.Text(entity.dxf.text, h, x, y, fill=self.color))
             elif typ == "HATCH":
                 # only external border is considered
@@ -143,12 +144,12 @@ class Block2():
                     if isinstance(entity.paths.paths[0],
                                   ezdxf.entities.boundary_paths.PolylinePath):
                         v = entity.paths.paths[0].vertices[0]
-                        first = ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
+                        first = ((v[0] - x0) * self.xscale, (v[1] - y0) * self.yscale)
                         last = first
                         p.M(*first)
                         bulge = v[2]
                         for v in entity.paths.paths[0].vertices[1:]:
-                            act = ((v[0] - x0) * self.scale, (v[1] - y0) * self.scale)
+                            act = ((v[0] - x0) * self.xscale, (v[1] - y0) * self.yscale)
                             if abs(bulge) > 0.1:  # arc
                                 _, _, r, _, _ = self.bulge_arc(last, act, bulge)
                                 sweep_flag = 0 if bulge > 0 else 1
@@ -169,16 +170,16 @@ class Block2():
                         for edge in entity.paths.paths[0].edges:
                             if isinstance(edge, ezdxf.entities.boundary_paths.LineEdge):
                                 if first is None:
-                                    p.M((edge.start_point[0] - x0) * self.scale,
-                                        (edge.start_point[1] - y0) * self.scale)
+                                    p.M((edge.start_point[0] - x0) * self.xscale,
+                                        (edge.start_point[1] - y0) * self.yscale)
                                     first = False
-                                p.L((edge.end_point[0] - x0) * self.scale,
-                                    (edge.end_point[1] - y0) * self.scale)
+                                p.L((edge.end_point[0] - x0) * self.xscale,
+                                    (edge.end_point[1] - y0) * self.yscale)
                             elif isinstance(edge, ezdxf.entities.boundary_paths.ArcEdge):
                                 edge.end_angle = min(edge.end_angle, 359.9)
-                                p.arc((edge.center[0] - x0) * self.scale,
-                                      (edge.center[1] - y0) * self.scale,
-                                      edge.radius * self.scale,
+                                p.arc((edge.center[0] - x0) * self.xscale,
+                                      (edge.center[1] - y0) * self.yscale,
+                                      edge.radius * self.xscale,
                                       edge.start_angle, edge.end_angle)
                     else:
                         print(f'Unsupported HATCH boundary type: {block.name}')
@@ -191,12 +192,12 @@ class Block2():
                               fill='none')
                 with entity.points() as points:
                     pp = points[0]
-                    first = ((pp[0] - x0) * self.scale, (pp[1] - y0) * self.scale)
+                    first = ((pp[0] - x0) * self.xscale, (pp[1] - y0) * self.yscale)
                     p.M(*first)
                     act = first
                     bulge = pp[4]
                     for pp in points[1:]:
-                        act = ((pp[0] - x0) * self.scale, (pp[1] - y0) * self.scale)
+                        act = ((pp[0] - x0) * self.xscale, (pp[1] - y0) * self.yscale)
                         if abs(bulge) > 0.1:
                             _, _, r, _, _ = self.bulge_arc(last, act, bulge)
                             sweep_flag = 0 if bulge > 0 else 1
@@ -217,8 +218,8 @@ class Block2():
                 #p = []
                 #with entity.points() as points:
                 #    for pp in points:
-                #        p.append((pp[0] - x0) * self.scale)
-                #        p.append((pp[1] - y0) * self.scale)
+                #        p.append((pp[0] - x0) * self.xscale)
+                #        p.append((pp[1] - y0) * self.yscale)
                 #closed = False
                 #if entity.closed:
                 #    closed = True
@@ -228,8 +229,8 @@ class Block2():
                 if entity.get_mode() in ('AcDb2dPolyline', 'AcDb3dPolyline'):
                     p = []
                     for v in entity.vertices:
-                        p.append((v.dxf.location[0] - x0) * self.scale)
-                        p.append((v.dxf.location[1] - y0) * self.scale)
+                        p.append((v.dxf.location[0] - x0) * self.xscale)
+                        p.append((v.dxf.location[1] - y0) * self.yscale)
                     closed = False
                     if entity.is_closed:
                         closed = True
