@@ -2,6 +2,8 @@
 
 ## Python scripts
 
+These scripts are based on [EZDXF](https://github.com/mozman/ezdxf).
+
 Start scripts without any parameter or --help switch to get usage tipps
 
 * block2svg.py - convert CAD blocks to SVG or PNG
