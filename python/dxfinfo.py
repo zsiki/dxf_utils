@@ -22,7 +22,7 @@ dxf2cad_version = {'AC1002': 'AutoCAD R2',
                    'AC1021': 'AutoCAD R2007/R2008/R2009',
                    'AC1024': 'AutoCAD R2010/R2011/R2012',
                    'AC1027': 'AutoCAD R2013/R2014/R2015/R2016/R2017',
-                   'AC1032': 'AutoCAD R2018/R2019/R2020/R2021/R2022/R2023'}
+                   'AC1032': 'AutoCAD R2018/R2019/R2020/R2021/R2022/R2023/R2024'}
 
 def cad_version(dxf_version):
     """ return AuoCAD version from DXF version
@@ -42,7 +42,8 @@ class DxfInfo():
         :param num_length: length of numbers in output
     """
     def __init__(self, dxf_file, template_file, output_file,
-                 layer_name=LAYER_FIELD, num_length=NUMBER_FIELD):
+                 layer_name=LAYER_FIELD, num_length=NUMBER_FIELD,
+                 empty_layers=False):
         """ initialize object """
         self.dxf_file = dxf_file
         self.template_file = template_file
@@ -82,6 +83,7 @@ class DxfInfo():
         self.blocks = None
         self.layer_name = layer_name
         self.num_length = num_length
+        self.empty_layers = empty_layers
 
     def print_row(self, lay, lay_row):
         """ print a row of table
@@ -164,6 +166,7 @@ class DxfInfo():
             self.layer_entity()
         keys = sorted(self.entities.keys())
         entities_found = sorted(list({key[1] for key in keys}))
+        layers_found = sorted(list({key[0] for key in keys}))
         num_ent_types = len(entities_found)
         entity_dict = {e[1]:e[0] for e in enumerate(entities_found)}
         # print header of table
@@ -187,6 +190,15 @@ class DxfInfo():
             total_row += layer_row
         print(file=self.out)
         self.print_row("TOTAL", total_row)
+        if self.empty_layers:
+            layer_names = [layer.dxf.name for layer in self.doc.layers]
+            empty = sorted(list(set(layer_names) - set(layers_found)))
+            if len(empty) > 0:
+                print('\nEmpty layers:')
+                for name in empty:
+                    print(name)
+            else:
+                print('No empta layers')
 
 if __name__ == '__main__':
     # process command line parameters
@@ -200,10 +212,12 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--num_length', type=int, default=NUMBER_FIELD,
                         help=f'Length of numbers in output, default: {NUMBER_FIELD}')
     parser.add_argument('-o', '--out_file', type=str, default='stdout',
-                        help='output file name, default: stdout')
+                        help='Output file name, default: stdout')
+    parser.add_argument('-e', '--empty_layers', action="store_true",
+                        help='Show empty layers, too')
     args = parser.parse_args()
     DI = DxfInfo(args.name[0], args.template, args.out_file, args.layer_name,
-                 args.num_length)
+                 args.num_length, args.empty_layers)
     DI.dxf_info()
     if args.template:
         DI.layer_compare()
